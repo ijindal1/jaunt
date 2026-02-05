@@ -1,0 +1,16 @@
+# Example jaunt.toml
+#
+# This is a starter template; keys will evolve with Jaunt as the MVP is implemented.
+
+[project]
+# Modules (or directories) containing spec stubs and tests for Jaunt to scan.
+roots = ["src", "tests"]
+
+[generation]
+# Where generated implementation is written.
+generated_dir = "__generated__"
+
+[backend]
+# Which generator backend to use (placeholder).
+name = "openai"
+

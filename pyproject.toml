@@ -17,10 +17,18 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/jaunt"]
-include = ["src/jaunt/skill/**"]
+include = [
+  "src/jaunt/py.typed",
+  "src/jaunt/prompts/**",
+  "src/jaunt/skill/**",
+]
 
 [tool.hatch.build.targets.sdist]
-include = ["src/jaunt/skill/**"]
+include = [
+  "src/jaunt/py.typed",
+  "src/jaunt/prompts/**",
+  "src/jaunt/skill/**",
+]
 
 [dependency-groups]
 dev = [

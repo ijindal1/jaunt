@@ -2,6 +2,16 @@ from __future__ import annotations
 
 from importlib.metadata import PackageNotFoundError, version
 
+from jaunt.errors import (
+    JauntConfigError,
+    JauntDependencyCycleError,
+    JauntDiscoveryError,
+    JauntError,
+    JauntGenerationError,
+    JauntNotBuiltError,
+)
+from jaunt.runtime import magic, test
+
 
 def hello(name: str | None = None) -> str:
     """Return a friendly greeting."""
@@ -21,5 +31,14 @@ def _package_version() -> str:
 
 __version__ = _package_version()
 
-__all__ = ["__version__", "hello"]
-
+__all__ = [
+    "__version__",
+    "magic",
+    "test",
+    "JauntError",
+    "JauntConfigError",
+    "JauntDiscoveryError",
+    "JauntNotBuiltError",
+    "JauntGenerationError",
+    "JauntDependencyCycleError",
+]
