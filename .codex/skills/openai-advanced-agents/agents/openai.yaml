@@ -1,0 +1,4 @@
+interface:
+  display_name: "Advanced Agents (OpenAI)"
+  short_description: "Build robust tool-using agents"
+  default_prompt: "Use $openai-advanced-agents to design and implement an advanced agent workflow."

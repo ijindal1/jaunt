@@ -1,0 +1,4 @@
+interface:
+  display_name: "uv (Python package manager)"
+  short_description: "Manage deps, venvs, locks with uv"
+  default_prompt: "Use $uv-python to set up or fix this project using uv."
