@@ -1,0 +1,38 @@
+---
+title: Getting Started
+description: Set up Jaunt in this repo, and in a consumer project.
+---
+
+## Using This Repo
+
+```bash
+uv sync
+export OPENAI_API_KEY=...
+uv run jaunt --version
+```
+
+Jaunt discovers the project root by walking upward from the current working directory until it finds a `jaunt.toml`.
+
+## Minimal Consumer Project Layout
+
+```text
+myproj/
+  jaunt.toml
+  src/
+    my_app/
+      __init__.py
+      specs.py
+  tests/
+    __init__.py
+    specs_email.py
+```
+
+## Run Generation
+
+```bash
+uv run jaunt build
+uv run jaunt test
+```
+
+Next: read about writing specs with `@jaunt.magic` and `@jaunt.test`.
+

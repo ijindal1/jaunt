@@ -1,0 +1,28 @@
+---
+title: Examples Folder
+description: Runnable example projects under examples/ (real OpenAI calls).
+---
+
+The `examples/` folder contains small Jaunt projects you can run end-to-end.
+
+Important: running these will call the OpenAI API and spend tokens.
+
+Prereqs:
+
+- `OPENAI_API_KEY` set in your environment (or add it to `<repo_root>/.env`).
+- This repo's dev environment set up (`uv sync`).
+
+Quick start (from the repo root):
+
+```bash
+.venv/bin/python examples/run_example.py slugify test
+.venv/bin/python examples/run_example.py lru test
+.venv/bin/python examples/run_example.py dice test
+```
+
+On-the-fly demo:
+
+```bash
+.venv/bin/python examples/demo_on_the_fly.py --test --keep
+```
+

@@ -1,0 +1,37 @@
+---
+title: "@jaunt.test Specs"
+description: Write test intent as stubs that Jaunt turns into real pytest tests.
+---
+
+Test specs are *not real tests*. They are stubs that describe what the generated tests should do.
+
+Rules:
+
+- Must be **top-level** functions.
+- Name them like pytest tests (`test_*`) so the *generated* versions are collected by pytest.
+- `@jaunt.test` sets `__test__ = False` on the stub so pytest will not collect the stub itself.
+
+```python
+from __future__ import annotations
+
+import jaunt
+
+from my_app import specs
+
+
+@jaunt.test()
+def test_normalize_email__lowercases_and_strips() -> None:
+    """
+    Assert normalize_email:
+    - strips surrounding whitespace
+    - lowercases
+    - raises ValueError for invalid inputs like "no-at-sign"
+
+    Examples:
+    - specs.normalize_email("  A@B.COM  ") == "a@b.com"
+    """
+    raise AssertionError("spec stub (generated at test time)")
+```
+
+Jaunt generates a module under `tests/__generated__/...` with top-level test functions matching your stub names.
+

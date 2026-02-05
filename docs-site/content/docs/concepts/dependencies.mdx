@@ -1,0 +1,25 @@
+---
+title: Dependencies
+description: Ordering and incremental rebuild behavior.
+---
+
+Jaunt builds a spec-level dependency graph that is used for:
+
+- build/test generation order (dependencies before dependents)
+- incremental rebuilds (a dependent becomes stale if a dependency changes)
+
+Declare deps explicitly:
+
+```python
+@jaunt.magic(deps=["my_app.specs:normalize_email", "my_app.other.Helper"])
+def is_corporate_email(raw: str) -> bool: ...
+```
+
+Accepted `deps=` formats:
+
+- string `"pkg.mod:Qualname"` (canonical)
+- string `"pkg.mod.Qualname"` (dot shorthand; last `.` becomes `:`)
+- an object (function/class) that Jaunt can convert to `module:qualname`
+
+Inference (best-effort) can also add edges. If a cycle exists, Jaunt raises `JauntDependencyCycleError` and exits with code `2`.
+

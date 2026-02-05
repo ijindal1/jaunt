@@ -1,0 +1,4 @@
+interface:
+  display_name: "Fumadocs Docs"
+  short_description: "Create and maintain a Fumadocs documentation site"
+  default_prompt: "Use Fumadocs to set up or update a docs site for this repo. Follow Fumadocs docs, keep changes consistent, and write clear MDX content."

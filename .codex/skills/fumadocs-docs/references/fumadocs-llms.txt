@@ -1,0 +1,157 @@
+# Docs
+
+## cli
+
+- [create-fumadocs-app](/docs/cli/create-fumadocs-app): The CLI to create new Fumadocs apps
+- [User Guide](/docs/cli): The CLI tool that automates setups and installs components.
+
+## headless
+
+- [Introduction](/docs/headless): Getting started with core library
+- [Internationalization](/docs/headless/internationalization): Support multiple languages in your documentation
+- [Page Slugs & Page Tree](/docs/headless/page-conventions): Customise generated page slugs and page tree.
+- [Page Tree](/docs/headless/page-tree): The structure of page tree.
+- [Breadcrumb](/docs/headless/components/breadcrumb): The navigation component at the top of the screen
+- [Components](/docs/headless/components): Blocks for your docs
+- [Link](/docs/headless/components/link): A Link component that handles external links
+- [TOC](/docs/headless/components/toc): Table of Contents
+- [Content Collections](/docs/headless/content-collections): Use Content Collections for Fumadocs
+- [Headings](/docs/headless/mdx/headings): Process headings from your document
+- [MDX Plugins](/docs/headless/mdx): Useful remark & rehype plugins for your docs.
+- [Package Install](/docs/headless/mdx/install): Generate code blocks for installing packages
+- [Rehype Code](/docs/headless/mdx/rehype-code): Code syntax highlighter
+- [Remark Admonition](/docs/headless/mdx/remark-admonition): Use Admonition in Fumadocs
+- [Remark Image](/docs/headless/mdx/remark-image): Adding size attributes to images.
+- [Remark Files](/docs/headless/mdx/remark-mdx-files): Generate files from codeblocks.
+- [Remark NPM](/docs/headless/mdx/remark-npm): Generate code blocks for package managers
+- [Remark TS to JS](/docs/headless/mdx/remark-ts2js): A remark plugin to transform TypeScript codeblocks into two tabs of codeblock with its JavaScript variant.
+- [Remark Structure](/docs/headless/mdx/structure): Extract information from your documents, useful for implementing document search
+- [Algolia Search](/docs/headless/search/algolia): Integrate Algolia Search with Fumadocs
+- [Search](/docs/headless/search): Configure Search in Fumadocs
+- [Mixedbread](/docs/headless/search/mixedbread): Integrate Mixedbread Search with Fumadocs
+- [Orama Cloud](/docs/headless/search/orama-cloud): Integrate with Orama Cloud
+- [Built-in Search](/docs/headless/search/orama): Built-in document search of Fumadocs
+- [Trieve Search](/docs/headless/search/trieve): Integrate Trieve Search with Fumadocs
+- [Loader API](/docs/headless/source-api): Turn content sources into a unified interface
+- [Loader Plugins](/docs/headless/source-api/plugins): Extend Loader API
+- [Source](/docs/headless/source-api/source): Setup sources for Loader API
+- [Get TOC](/docs/headless/utils/get-toc): Parse Table of contents from markdown/mdx content
+- [Last Modified Time](/docs/headless/utils/git-last-edit): Get the last edit time of a file in Github repository
+- [Utilities](/docs/headless/utils): Utilities to provide extra functionality to your docs
+- [Negotiation](/docs/headless/utils/negotiation): Tiny wrapper for negotiation features.
+- [Page Tree Utils](/docs/headless/utils/page-tree): Common utilities to interact with page tree.
+
+## framework
+
+- [Comparisons](/docs/comparisons): How is Fumadocs different from other existing frameworks?
+- [Quick Start](/docs): Getting Started with Fumadocs
+- [Navigation](/docs/navigation): Configure navigation in your Fumadocs app.
+- [Page Slugs & Page Tree](/docs/page-conventions): A shared convention for organizing your documents
+- [Versioning](/docs/versioning): Implementing multi-version in your docs.
+- [What is Fumadocs](/docs/what-is-fumadocs): Introducing Fumadocs, a docs framework that you can break.
+- [Scalar Example](/docs/openapi): View the Scalar Galaxy example OpenAPI schema.
+- [Deploying](/docs/deploying): Deploy your Fumadocs app
+- [Static Build](/docs/deploying/static): Output static website with Fumadocs.
+- [Access Control](/docs/guides/access-control): Limit the access of content.
+- [Export PDF](/docs/guides/export-pdf): Export docs pages as PDF documents
+- [Guides](/docs/guides): Useful guides for extending Fumadocs.
+- [RSS Feed](/docs/guides/rss): Generate a RSS feed for your docs/blog.
+- [Feedback](/docs/integrations/feedback): Receive feedback from your users
+- [AI & LLMs](/docs/integrations/llms): Integrate AI functionality to Fumadocs.
+- [Validate Links](/docs/integrations/validate-links): Ensure your links are correct.
+- [Internationalization](/docs/internationalization): Support multiple languages in your documentation
+- [Next.js](/docs/internationalization/next): Support i18n routing on your Next.js + Fumadocs app
+- [React Router](/docs/internationalization/react-router): Support i18n routing on your React Router + Fumadocs app.
+- [Tanstack Start](/docs/internationalization/tanstack-start): Support i18n routing on your Tanstack Start + Fumadocs app.
+- [Manual Installation](/docs/manual-installation): Add Fumadocs to existing projects.
+- [Next.js](/docs/manual-installation/next): Setup Fumadocs on Next.js.
+- [React Router](/docs/manual-installation/react-router): Setup Fumadocs on React Router.
+- [Tanstack Start](/docs/manual-installation/tanstack-start): Setup Fumadocs on Tanstack Start.
+- [Waku](/docs/manual-installation/waku): Setup Fumadocs on Waku.
+- [Markdown](/docs/markdown): How to write documents
+- [Math](/docs/markdown/math): Writing math equations in Markdown/MDX.
+- [Mermaid](/docs/markdown/mermaid): Rendering diagrams in your docs
+- [Twoslash](/docs/markdown/twoslash): Use Typescript Twoslash in your docs
+- [Algolia](/docs/search/algolia): Using Algolia with Fumadocs UI.
+- [Search](/docs/search): Implement document search in your docs
+- [Mixedbread](/docs/search/mixedbread): Using Mixedbread with Fumadocs UI.
+- [Orama Cloud](/docs/search/orama-cloud): Using Orama Cloud with Fumadocs UI.
+- [Orama (default)](/docs/search/orama): The default search engine powered by Orama.
+- [Obsidian](/docs/integrations/obsidian): Render your Obsidian vaults in Fumadocs.
+- [Python](/docs/integrations/python): Generate docs from Python
+- [Typescript](/docs/integrations/typescript): Generate docs from Typescript definitions
+- [OG Image Generation](/docs/integrations): Generate dynamic preview image for docs pages
+- [next/og](/docs/integrations/next-og): Usage with Next.js Metadata API.
+- [Takumi](/docs/integrations/takumi): Integrate Takumi for framework agnostic and fast metadata image generation.
+- [Build Your Own](/docs/integrations/content/custom): Build your own content source for Fumadocs.
+- [Content Source](/docs/integrations/content): Integrate different content sources with Fumadocs.
+- [MDX Remote](/docs/integrations/content/mdx-remote): Compiled Markdown/MDX content on demand.
+- [<APIPage />](/docs/integrations/openapi/api-page): The component for rendering OpenAPI docs content
+- [generateFiles()](/docs/integrations/openapi/generate-files): Generate pages from OpenAPI schema.
+- [OpenAPI](/docs/integrations/openapi): Generating docs for OpenAPI schema
+- [createOpenAPI()](/docs/integrations/openapi/server): The OpenAPI server instance.
+- [Story](/docs/integrations/story): Display components with controls.
+- [Next.js](/docs/integrations/story/next): Configure Fumadocs Story on Next.js.
+- [Vite](/docs/integrations/story/vite): Configure Fumadocs Story for Vite-based frameworks.
+- [Get all planets](/docs/openapi/getAllData): It’s easy to say you know them all, but do you really? Retrieve all the planets and check whether you missed one.
+- [Create a planet](/docs/openapi/createPlanet): Time to play god and create a new planet. What do you think? Ah, don’t think too much. What could go wrong anyway?
+- [Get a planet](/docs/openapi/getPlanet): You’ll better learn a little bit more about the planets. It might come in handy once space travel is available for everyone.
+- [Delete a planet](/docs/openapi/deletePlanet): This endpoint was used to delete planets. Unfortunately, that caused a lot of trouble for planets with life. So, this endpoint is now deprecated and should not be used anymore.
+- [Update a planet](/docs/openapi/updatePlanet): Sometimes you make mistakes, that's fine. No worries, you can update all planets.
+- [Upload an image to a planet](/docs/openapi/uploadImage): Got a crazy good photo of a planet? Share it with the world!
+- [Create a user](/docs/openapi/createUser): Time to create a user account, eh?
+- [Get a token](/docs/openapi/getToken): Yeah, this is the boring security stuff. Just get your super secret token and move on.
+- [Get authenticated user](/docs/openapi/getMe): Find yourself they say. That’s what you can do here.
+- [New Planet](/docs/openapi/newplanet): undefined
+
+## mdx
+
+- [Lazy Loading](/docs/mdx/async): Configure lazy loading on collection outputs.
+- [Collections](/docs/mdx/collections): Collection of content data for your app
+- [Global Options](/docs/mdx/global): Customise Fumadocs MDX
+- [Include](/docs/mdx/include): Reuse content from other files.
+- [Getting Started](/docs/mdx): Introducing Fumadocs MDX, the official content source of Fumadocs.
+- [Last Modified Time](/docs/mdx/last-modified): Output the last modified time of a document
+- [MDX Presets](/docs/mdx/mdx): Customise the default configurations for MDX processor.
+- [Performance](/docs/mdx/performance): The performance of Fumadocs MDX
+- [Generate Types](/docs/mdx/typegen): Generate types without running dev/build server
+- [Workspace](/docs/mdx/workspace): Use Fumadocs MDX in multiple workspace.
+- [Next.js](/docs/mdx/next): Use Fumadocs MDX with Next.js
+- [Vite](/docs/mdx/vite): Use Fumadocs MDX with Vite
+- [Browser Entry](/docs/mdx/entry/browser): Access collections from browser/client environment.
+- [Dynamic Entry](/docs/mdx/entry/dynamic): Accessing your collections with on-demand compilation.
+- [Import MDX Files](/docs/mdx/entry/import): Importing MDX files directly.
+- [Accessing Collections](/docs/mdx/entry): Access collection outputs from entry files.
+- [Server Entry](/docs/mdx/entry/server): Accessing collection outputs from server.
+- [Bun](/docs/mdx/loader/bun): Access content in Bun.
+- [Runtime Loader](/docs/mdx/loader): Fumadocs MDX loader integration.
+- [Node.js](/docs/mdx/loader/node): Access content in Node.js runtime.
+
+## ui
+
+- [Component Library](/docs/ui/component-library): The underlying headless component library.
+- [Overview](/docs/ui): The default theme of Fumadocs
+- [Search UI](/docs/ui/search): The UI for document search
+- [Themes](/docs/ui/theme): Add Theme to Fumadocs UI
+- [Accordion](/docs/ui/components/accordion): Add Accordions to your documentation
+- [Auto Type Table](/docs/ui/components/auto-type-table): Auto-generated type table
+- [Banner](/docs/ui/components/banner): Add a banner to your site
+- [Code Block](/docs/ui/components/codeblock): Displaying Shiki highlighted code blocks
+- [Code Block (Dynamic)](/docs/ui/components/dynamic-codeblock): A codeblock that also highlights code
+- [Files](/docs/ui/components/files): Display file structure in your documentation
+- [GitHub Info](/docs/ui/components/github-info): Display your GitHub repository information
+- [Graph View](/docs/ui/components/graph-view): A graph of all pages.
+- [Zoomable Image](/docs/ui/components/image-zoom): Allow zoom-in images in your documentation
+- [Components](/docs/ui/components): Additional components to improve your docs
+- [Inline TOC](/docs/ui/components/inline-toc): Add Inline TOC into your documentation
+- [Steps](/docs/ui/components/steps): Adding steps to your docs
+- [Tabs](/docs/ui/components/tabs): A Tabs component built with Radix UI, with additional features such as persistent and shared value.
+- [Type Table](/docs/ui/components/type-table): A table for documenting types
+- [Docs Layout](/docs/ui/layouts/docs): The layout of documentation
+- [Home Layout](/docs/ui/layouts/home-layout): Shared layout for other pages
+- [Layouts](/docs/ui/layouts): A list of layout components.
+- [Layout Links](/docs/ui/layouts/links): Navigation configurations on all layouts.
+- [Navbar](/docs/ui/layouts/nav): Navbar/header configurations.
+- [Notebook Layout](/docs/ui/layouts/notebook): A compact version of Docs Layout
+- [Docs Page](/docs/ui/layouts/page): A page in your documentation
+- [Root Provider](/docs/ui/layouts/root-provider): The context provider of Fumadocs UI.

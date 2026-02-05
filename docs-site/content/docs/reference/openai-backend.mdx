@@ -1,0 +1,15 @@
+---
+title: OpenAI Backend
+description: How the default backend calls OpenAI and how prompts are loaded.
+---
+
+The default backend is `jaunt.generate.openai_backend.OpenAIBackend`:
+
+- reads the API key from `os.environ[llm.api_key_env]`
+- uses the OpenAI Python SDK (`openai.AsyncOpenAI`)
+- calls `chat.completions.create(model=..., messages=[...])`
+- strips a single top-level markdown fence (```...```) if present
+- retries once if the output fails basic validation (syntax + required top-level names)
+
+Prompt templates live in `src/jaunt/prompts/` and are packaged with the wheel/sdist.
+

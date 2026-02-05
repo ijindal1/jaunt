@@ -1,0 +1,46 @@
+---
+title: CLI
+description: Commands, flags, and exit codes.
+---
+
+Entry point: `jaunt = "jaunt.cli:main"` (see `pyproject.toml` in the repo root).
+
+## Build
+
+Generate implementation modules for `@jaunt.magic` specs:
+
+```bash
+uv run jaunt build
+uv run jaunt build --force
+uv run jaunt build --jobs 16
+uv run jaunt build --target my_app.specs
+uv run jaunt build --no-infer-deps
+```
+
+## Test
+
+Generate tests for `@jaunt.test` specs and run pytest:
+
+```bash
+uv run jaunt test
+uv run jaunt test --no-build
+uv run jaunt test --no-run
+uv run jaunt test --pytest-args=-k --pytest-args email
+```
+
+## Common Flags
+
+- `--root /path/to/project`: override project discovery (otherwise Jaunt searches upward for `jaunt.toml`).
+- `--config /path/to/jaunt.toml`: override config path.
+- `--target MODULE[:QUALNAME]`: restrict work to one or more modules (currently module-level; `:QUALNAME` is ignored for filtering).
+- `--no-infer-deps`: disable best-effort dependency inference (explicit `deps=` still applies).
+
+## Exit Codes
+
+- `0`: success
+- `2`: config/discovery/dependency-cycle errors
+- `3`: generation errors (LLM/backend/validation/import)
+- `4`: pytest failure (only when `jaunt test` actually runs pytest)
+
+Note: `jaunt test` runs pytest only on the generated test files it just wrote (not the entire suite). Run `pytest` separately for a full test run.
+

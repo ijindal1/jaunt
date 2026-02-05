@@ -1,0 +1,19 @@
+---
+title: Jaunt
+description: Spec-driven code generation for Python.
+---
+
+Jaunt is a small Python library + CLI for **spec-driven code generation**:
+
+- You write **intent** as normal Python functions/classes decorated with `@jaunt.magic(...)`.
+- You optionally write **test intent** as Python stubs decorated with `@jaunt.test(...)`.
+- Jaunt uses an LLM backend (currently OpenAI) to generate real modules under `__generated__/`.
+- You review the generated output and iterate by editing the specs and rerunning generation.
+
+Start here:
+
+<Cards>
+  <Card title="Getting started" href="/docs/getting-started" />
+  <Card title="CLI reference" href="/docs/reference/cli" />
+  <Card title="Configuration" href="/docs/reference/config" />
+</Cards>

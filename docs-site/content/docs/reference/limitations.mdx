@@ -1,0 +1,10 @@
+---
+title: Limitations / Gotchas
+description: Current behavioral constraints in the MVP implementation.
+---
+
+- Provider support: only `llm.provider = "openai"` is supported by the CLI.
+- Generated dir name: runtime forwarding for `@jaunt.magic` currently imports using `generated_dir="__generated__"` (hardcoded). If you set `paths.generated_dir` to something else, generation may still write files, but the runtime wrapper will not find them unless you import the generated module directly.
+- Prompt overrides: `prompts.*` are treated as file paths by the OpenAI backend. If you set them, ensure those files exist and contain the prompt text.
+- Context plumbing: dependency API and previously generated dependency-module source are currently passed as empty blocks to the backend (ordering and digesting still work).
+

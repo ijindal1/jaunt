@@ -1,0 +1,54 @@
+---
+title: Configuration (jaunt.toml)
+description: Config keys and behavior.
+---
+
+Jaunt discovers the project root by walking upward from the current working directory until it finds `jaunt.toml`.
+
+Minimal config:
+
+```toml
+version = 1
+
+[paths]
+source_roots = ["src"]
+test_roots = ["tests"]
+generated_dir = "__generated__"
+```
+
+Full config (all keys optional except `version`):
+
+```toml
+version = 1
+
+[paths]
+source_roots = ["src", "."]
+test_roots = ["tests"]
+generated_dir = "__generated__"
+
+[llm]
+provider = "openai"
+model = "gpt-5.2"
+api_key_env = "OPENAI_API_KEY"
+
+[build]
+jobs = 8
+infer_deps = true
+
+[test]
+jobs = 4
+infer_deps = true
+pytest_args = ["-q"]
+
+[prompts]
+build_system = ""
+build_module = ""
+test_system = ""
+test_module = ""
+```
+
+Notes:
+
+- `paths.source_roots`: the CLI picks the *first existing* source root as the output base for generated build modules.
+- `prompts.*` are treated as *file paths* and read at runtime by the OpenAI backend.
+
