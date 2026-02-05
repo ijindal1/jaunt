@@ -213,6 +213,7 @@ async def run_build(
     module_dag: dict[str, set[str]],
     stale_modules: set[str],
     backend: GeneratorBackend,
+    skills_block: str = "",
     jobs: int = 4,
     progress: object | None = None,
 ) -> BuildReport:
@@ -274,6 +275,7 @@ async def run_build(
             decorator_prompts=decorator_prompts,
             dependency_apis={},
             dependency_generated_modules={},
+            skills_block=skills_block,
         )
 
         result = await backend.generate_with_retry(ctx)

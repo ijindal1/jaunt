@@ -130,7 +130,13 @@ class OpenAIBackend(GeneratorBackend):
 
         system = render_template(system_t, mapping).strip() + "\n"
         user = render_template(user_t, mapping).strip() + "\n"
-        return [{"role": "system", "content": system}, {"role": "user", "content": user}]
+
+        messages: list[dict[str, str]] = [{"role": "system", "content": system}]
+        if (ctx.skills_block or "").strip():
+            skills_msg = "External library skills (reference):\n" + ctx.skills_block.strip() + "\n"
+            messages.append({"role": "user", "content": skills_msg})
+        messages.append({"role": "user", "content": user})
+        return messages
 
     async def generate_module(
         self, ctx: ModuleSpecContext, *, extra_error_context: list[str] | None = None

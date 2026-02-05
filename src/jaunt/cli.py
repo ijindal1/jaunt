@@ -178,6 +178,27 @@ def cmd_build(args: argparse.Namespace) -> int:
         _maybe_load_dotenv(root)
 
         source_dirs = [root / sr for sr in cfg.paths.source_roots]
+
+        skills_block = ""
+        try:
+            from jaunt import skills_auto
+
+            skills_res = asyncio.run(
+                skills_auto.ensure_pypi_skills_and_block(
+                    project_root=root,
+                    source_roots=[d for d in source_dirs if d.exists()],
+                    generated_dir=cfg.paths.generated_dir,
+                    llm=cfg.llm,
+                )
+            )
+            for w in skills_res.warnings:
+                _eprint(f"warn: {w}")
+            skills_block = skills_res.skills_block
+        except Exception as e:  # noqa: BLE001 - best-effort; never block build
+            _eprint(
+                f"warn: failed ensuring external library skills: {type(e).__name__}: {e}"
+            )
+
         _prepend_sys_path(source_dirs)
 
         from jaunt import discovery, registry
@@ -238,6 +259,7 @@ def cmd_build(args: argparse.Namespace) -> int:
                 module_dag=module_dag,
                 stale_modules=stale,
                 backend=_build_backend(cfg),
+                skills_block=skills_block,
                 jobs=jobs,
                 progress=progress,
             )

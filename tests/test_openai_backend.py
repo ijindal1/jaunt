@@ -81,3 +81,38 @@ def test_openai_backend_errors_when_api_key_missing(monkeypatch) -> None:
     with pytest.raises(JauntConfigError) as ei:
         OpenAIBackend(LLMConfig(provider="openai", model="gpt-test", api_key_env="OPENAI_API_KEY"))
     assert "Missing API key" in str(ei.value)
+
+
+def test_openai_backend_injects_skills_block_as_extra_user_message(monkeypatch) -> None:
+    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+    backend = OpenAIBackend(
+        LLMConfig(provider="openai", model="gpt-test", api_key_env="OPENAI_API_KEY")
+    )
+
+    seen: list[list[dict[str, str]]] = []
+
+    async def fake_call(messages):
+        seen.append(messages)
+        return "def foo():\n    return 1\n"
+
+    monkeypatch.setattr(backend, "_call_openai", fake_call)
+
+    ctx = ModuleSpecContext(
+        kind="build",
+        spec_module="pkg.specs",
+        generated_module="pkg.__generated__.specs",
+        expected_names=["foo"],
+        spec_sources={},
+        decorator_prompts={},
+        dependency_apis={},
+        dependency_generated_modules={},
+        skills_block="## requests==2.0.0\nUse requests.get(...)\n",
+    )
+
+    out = asyncio.run(backend.generate_module(ctx))
+    assert "def foo" in out
+    assert len(seen) == 1
+    msgs = seen[0]
+    assert len(msgs) == 3
+    assert msgs[1]["role"] == "user"
+    assert "External library skills (reference):" in msgs[1]["content"]

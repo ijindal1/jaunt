@@ -32,6 +32,7 @@ def _example_map(repo_root: Path) -> dict[str, tuple[Path, str]]:
         "slugify": (repo_root / "examples" / "01_slugify", "slugify_demo"),
         "lru": (repo_root / "examples" / "02_lru_cache", "cache_demo"),
         "dice": (repo_root / "examples" / "03_dice_roller", "dice_demo"),
+        "pydantic": (repo_root / "examples" / "04_pydantic_validation", "pydantic_demo"),
     }
 
 
@@ -42,7 +43,7 @@ def _run(args: list[str], *, cwd: Path, env: dict[str, str]) -> int:
 
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(prog="run_example.py")
-    p.add_argument("example", choices=["slugify", "lru", "dice"])
+    p.add_argument("example", choices=["slugify", "lru", "dice", "pydantic"])
 
     sub = p.add_subparsers(dest="command", required=True)
 
@@ -69,6 +70,7 @@ def main(argv: list[str] | None = None) -> int:
             cmd.append("--force")
         rc = _run(cmd, cwd=project_dir, env=env)
         print(f"Generated implementations under: {project_dir / 'src' / pkg / '__generated__'}")
+        print(f"Skills (if generated) under: {project_dir / '.agents' / 'skills'}")
         return rc
 
     if ns.command == "test":
@@ -80,6 +82,7 @@ def main(argv: list[str] | None = None) -> int:
         rc = _run(cmd, cwd=project_dir, env=env)
         print(f"Generated implementations under: {project_dir / 'src' / pkg / '__generated__'}")
         print(f"Generated tests under: {project_dir / 'tests' / '__generated__'}")
+        print(f"Skills (if generated) under: {project_dir / '.agents' / 'skills'}")
         return rc
 
     raise SystemExit("unreachable")

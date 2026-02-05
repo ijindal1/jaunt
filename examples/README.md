@@ -20,7 +20,12 @@ From the repo root:
 .venv/bin/python examples/run_example.py slugify test
 .venv/bin/python examples/run_example.py lru test
 .venv/bin/python examples/run_example.py dice test
+.venv/bin/python examples/run_example.py pydantic test
 ```
+
+Note: `jaunt build` will (best-effort) auto-generate a PyPI skill for external
+imports and store it under `<example_root>/.agents/skills/<dist>/SKILL.md`
+(for this example, `pydantic`).
 
 On-the-fly demo (creates a temp project, runs `jaunt build`, optionally `jaunt test`):
 
@@ -36,4 +41,3 @@ Generated outputs are written inside each example project:
 - `tests/__generated__/...` (pytest tests)
 
 Review the generated code before relying on it in real projects.
-

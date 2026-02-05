@@ -18,6 +18,7 @@ class ModuleSpecContext:
     decorator_prompts: dict[SpecRef, str]
     dependency_apis: dict[SpecRef, str]
     dependency_generated_modules: dict[str, str]
+    skills_block: str = ""
 
 
 @dataclass(frozen=True, slots=True)
@@ -59,4 +60,3 @@ class GeneratorBackend(ABC):
             extra_ctx = (extra_ctx or []) + retry_ctx
 
         return GenerationResult(attempts=attempts, source=last_source, errors=last_errors)
-

@@ -155,3 +155,29 @@ Generated outputs are written inside each example project:
 - `tests/__generated__/...` (pytest tests)
 
 Review the generated code before relying on it in real projects.
+
+## Pydantic Validation (04_pydantic_validation)
+
+This example showcases **auto-generated PyPI skills** during `jaunt build`.
+
+It imports `pydantic` in the spec module, so Jaunt will (best-effort) generate a skill at:
+
+`examples/04_pydantic_validation/.agents/skills/pydantic/SKILL.md`
+
+`examples/04_pydantic_validation/src/pydantic_demo/specs.py` (excerpt):
+
+```python
+import jaunt
+import pydantic
+
+
+@jaunt.magic()
+class User(pydantic.BaseModel):
+    model_config = pydantic.ConfigDict(extra="forbid")
+```
+
+Run it from the repo root:
+
+```bash
+.venv/bin/python examples/run_example.py pydantic test
+```
