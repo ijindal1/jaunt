@@ -1,10 +1,16 @@
 ---
 title: Limitations / Gotchas
-description: Current behavioral constraints in the MVP implementation.
+description: "Current behavioral constraints in the MVP implementation."
 ---
 
-- Provider support: only `llm.provider = "openai"` is supported by the CLI.
-- Generated dir name: runtime forwarding for `@jaunt.magic` currently imports using `generated_dir="__generated__"` (hardcoded). If you set `paths.generated_dir` to something else, generation may still write files, but the runtime wrapper will not find them unless you import the generated module directly.
-- Prompt overrides: `prompts.*` are treated as file paths by the OpenAI backend. If you set them, ensure those files exist and contain the prompt text.
-- Context plumbing: dependency API and previously generated dependency-module source are currently passed as empty blocks to the backend (ordering and digesting still work).
-- Auto-generated PyPI skills (if enabled in your build): may do network calls to PyPI and additional OpenAI calls. Failures warn and continue, so behavior can differ based on environment and connectivity.
+- Provider support: only `llm.provider = "openai"` is supported by the CLI today. The config loader has a `provider` field, but the CLI will reject anything else with a config error.
+
+- Generated dir name: runtime forwarding for `@jaunt.magic` currently imports using `generated_dir="__generated__"` (hardcoded). If you set `paths.generated_dir` to something else, `jaunt build` may still write files there, but calling your `@jaunt.magic` functions will fail because the runtime decorator imports from `__generated__/`. Workaround: keep `__generated__`, or import the generated module directly (not recommended for "spec is the API" workflows).
+
+- Prompt overrides: `prompts.*` are treated as **file paths** by the OpenAI backend. If you set them, those files must exist and contain the prompt text. If you want to tweak prompts, version the prompt files alongside your repo.
+
+- Dependency context plumbing: the dependency DAG, ordering, and staleness propagation work, but the backend does not currently get rich "dependency implementation source" context for dependents. You may need to be more explicit in docstrings (or add `prompt=`) when a spec depends on non-trivial behavior from another generated spec.
+
+- Auto-generated PyPI skills (if enabled): this can add extra network calls (PyPI) and extra OpenAI calls during `jaunt build`. Failures warn and continue, so the build output can differ based on environment, connectivity, and what’s installed in the active venv.
+
+Next: [Writing Specs](/docs/writing-specs/magic).

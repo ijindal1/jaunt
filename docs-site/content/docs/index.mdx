@@ -1,19 +1,99 @@
 ---
-title: Jaunt
-description: Spec-driven code generation for Python.
+title: jaunt, dont code.
+description: "Turn small Python specs into real modules (and tests) with an LLM."
 ---
 
-Jaunt is a small Python library + CLI for **spec-driven code generation**:
+Jaunt is a Python library + CLI for **spec-driven code generation**.
 
-- You write **intent** as normal Python functions/classes decorated with `@jaunt.magic(...)`.
-- You optionally write **test intent** as Python stubs decorated with `@jaunt.test(...)`.
-- Jaunt uses an LLM backend (currently OpenAI) to generate real modules under `__generated__/`.
-- You review the generated output and iterate by editing the specs and rerunning generation.
+You write **intent** as real Python stubs (types + docstrings). Jaunt generates the boring correctness work under `__generated__/`. You review and iterate. The spec is the contract.
 
-Start here:
+## The Wow Gap
+
+This is the pitch. A tiny spec on the left. Real code on the right.
+
+<div className="grid gap-4 md:grid-cols-2">
+  <div>
+    <div className="text-sm font-medium opacity-80">Spec (you write)</div>
+
+```python
+from datetime import timedelta
+
+import jaunt
+from pydantic import BaseModel
+
+
+class Claims(BaseModel):
+    """Decoded token payload."""
+
+    sub: str
+    iat: float
+    exp: float
+
+
+@jaunt.magic()
+def create_token(user_id: str, secret: str, *, ttl: timedelta = timedelta(hours=1)) -> str:
+    """
+    Create an HS256-signed JWT.
+
+    - base64url encoding must omit "=" padding.
+    - Use HMAC-SHA256 with `secret` as the key.
+    - Raise ValueError if user_id is empty or ttl is not positive.
+    """
+    raise RuntimeError("spec stub (generated at build time)")
+```
+  </div>
+
+  <div>
+    <div className="text-sm font-medium opacity-80">Generated (Jaunt writes)</div>
+
+```python
+import base64
+import hmac
+import hashlib
+import json
+import time
+from datetime import timedelta
+
+
+def _b64url_encode_no_pad(data: bytes) -> str:
+    return base64.urlsafe_b64encode(data).decode("ascii").rstrip("=")
+
+
+def create_token(user_id: str, secret: str, *, ttl: timedelta = timedelta(hours=1)) -> str:
+    if not isinstance(user_id, str) or user_id == "":
+        raise ValueError("user_id must not be empty")
+    if ttl.total_seconds() <= 0:
+        raise ValueError("ttl must be positive")
+
+    header_obj = {"alg": "HS256", "typ": "JWT"}
+    now = int(time.time())
+    payload_obj = {"sub": user_id, "iat": now, "exp": now + int(ttl.total_seconds())}
+
+    header_b64 = _b64url_encode_no_pad(json.dumps(header_obj, separators=(",", ":"), sort_keys=True).encode("utf-8"))
+    payload_b64 = _b64url_encode_no_pad(json.dumps(payload_obj, separators=(",", ":"), sort_keys=True).encode("utf-8"))
+
+    signing_input = f"{header_b64}.{payload_b64}"
+    sig = hmac.new(secret.encode("utf-8"), signing_input.encode("utf-8"), hashlib.sha256).digest()
+    sig_b64 = _b64url_encode_no_pad(sig)
+
+    return f"{signing_input}.{sig_b64}"
+```
+  </div>
+</div>
+
+## Why Not Just Prompt An LLM Directly?
+
+- Specs are **versionable**: real Python in your repo, not chat history.
+- **Incremental rebuilds**: Jaunt hashes specs and only regenerates what’s stale.
+- **Dependency ordering**: specs can depend on other specs; Jaunt builds a DAG.
+- **Runtime forwarding**: import your spec module; the decorator forwards to generated code.
+
+## Start Here
 
 <Cards>
-  <Card title="Getting started" href="/docs/getting-started" />
-  <Card title="CLI reference" href="/docs/reference/cli" />
-  <Card title="Configuration" href="/docs/reference/config" />
+  <Card title="Quickstart" href="/docs/quickstart" />
+  <Card title="How It Works" href="/docs/how-it-works" />
+  <Card title="Writing Specs" href="/docs/writing-specs/magic" />
 </Cards>
+
+Next: [Quickstart](/docs/quickstart).

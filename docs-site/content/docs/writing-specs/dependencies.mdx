@@ -1,0 +1,46 @@
+---
+title: Dependencies
+description: "Ordering and incremental rebuild behavior."
+---
+
+Jaunt builds a spec-level dependency graph that is used for:
+
+- generation order (dependencies before dependents)
+- incremental rebuilds (a dependent becomes stale if a dependency changes)
+
+## Explicit Deps (`deps=...`)
+
+Declare deps explicitly when you want guaranteed ordering:
+
+```python
+@jaunt.magic(deps=["my_app.specs:normalize_email", "my_app.other.Helper"])
+def is_corporate_email(raw: str) -> bool:
+    ...
+```
+
+Accepted `deps=` formats:
+
+- string `"pkg.mod:Qualname"` (canonical)
+- string `"pkg.mod.Qualname"` (dot shorthand; last `.` becomes `:`)
+- an object (function/class) that Jaunt can convert to `module:qualname`
+
+## Inference (Best-Effort)
+
+Jaunt can also infer edges best-effort. It’s useful, but it’s not magic.
+
+Use explicit `deps=` when:
+
+- the dependency is in another module
+- you want deterministic ordering
+- inference is missing an edge or creating the wrong one
+
+## What Happens During Generation
+
+- Dependencies are generated first.
+- If a dependency changes, dependents become stale on the next run.
+
+Current limitation: dependency context plumbing is intentionally minimal in the MVP. Ordering and staleness propagation work, but the backend does not currently get rich "here is the generated dependency source" context for dependents.
+
+If a cycle exists, Jaunt raises `JauntDependencyCycleError` and exits with code `2`.
+
+Next: [Spec Writing Tips](/docs/writing-specs/tips).

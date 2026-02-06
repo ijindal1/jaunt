@@ -1,7 +1,9 @@
 ---
 title: CLI
-description: Commands, flags, and exit codes.
+description: "Commands, flags, and exit codes."
 ---
+
+For a guided, end-to-end introduction, start with [Quickstart](/docs/quickstart).
 
 Entry point: `jaunt = "jaunt.cli:main"` (see `pyproject.toml` in the repo root).
 
@@ -16,15 +18,6 @@ uv run jaunt build --jobs 16
 uv run jaunt build --target my_app.specs
 uv run jaunt build --no-infer-deps
 ```
-
-### Pre-Build: Auto-Generate PyPI Skills
-
-Before generation, `jaunt build` can auto-generate “skills” for the external libraries your project imports and inject them into the build prompt (best-effort).
-
-- Skills live under `<project_root>/.agents/skills/**/SKILL.md`.
-- Failures warn and continue (build still runs, just without missing skills).
-
-See: [Auto-Generated PyPI Skills (Build)](/docs/guides/pypi-skills).
 
 ## Test
 
@@ -52,3 +45,5 @@ uv run jaunt test --pytest-args=-k --pytest-args email
 - `4`: pytest failure (only when `jaunt test` actually runs pytest)
 
 Note: `jaunt test` runs pytest only on the generated test files it just wrote (not the entire suite). Run `pytest` separately for a full test run.
+
+Next: [Configuration](/docs/reference/config).

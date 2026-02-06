@@ -1,5 +1,7 @@
 # Jaunt (MVP)
 
+Note: `DOCS.md` is deprecated. The rendered docs site under `docs-site/` is the canonical documentation going forward.
+
 Jaunt is a small Python library + CLI for **spec-driven code generation**:
 
 - You write **intent** as normal Python functions/classes decorated with `@jaunt.magic(...)`.

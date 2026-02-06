@@ -1,0 +1,62 @@
+---
+title: Spec Writing Tips
+description: "Practical patterns for getting better output from smaller specs."
+---
+
+You don't "use Jaunt" once. You live in a loop: **write spec -> build -> review -> tighten spec -> rebuild**.
+
+## Vague vs. Precise Docstrings
+
+Bad (vague):
+
+```python
+@jaunt.magic()
+def parse_user_agent(ua: str) -> dict:
+    """Parse a user agent string."""
+    raise RuntimeError("spec stub (generated at build time)")
+```
+
+Better (contract):
+
+```python
+@jaunt.magic()
+def parse_user_agent(ua: str) -> dict[str, str]:
+    """
+    Parse a user agent string into a small, stable dict.
+
+    Contract:
+    - Return keys: "browser", "os".
+    - If unknown, use "unknown" (do not raise).
+    - Input may be empty or junk; treat as unknown.
+    """
+    raise RuntimeError("spec stub (generated at build time)")
+```
+
+## Use `prompt=` When The Docstring Isn’t Enough
+
+If a constraint is non-negotiable, say it twice:
+
+```python
+@jaunt.magic(prompt="Use only the standard library. Do not import third-party deps.")
+def stable_hash(text: str) -> str:
+    """Return a stable hex sha256 of UTF-8 text."""
+    raise RuntimeError("spec stub (generated at build time)")
+```
+
+## Don’t Edit Generated Files
+
+Generated output is disposable. Specs are the product.
+
+If you need a behavior change, change the spec and rebuild so your intent is versioned.
+
+## When Not To Use Jaunt
+
+Jaunt is best for glue code and boring-but-correct utilities (parsers, validators, formatters).
+
+Avoid it (for now) for:
+
+- performance-critical hot paths
+- complex stateful systems with tight invariants
+- code that depends on exact library versions or fragile runtime behavior
+
+Next: [Guides](/docs/guides/jwt-walkthrough).

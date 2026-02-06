@@ -1,5 +1,12 @@
 {
   "title": "Jaunt",
-  "pages": ["index", "getting-started", "concepts", "reference", "guides", "development"]
+  "pages": [
+    "index",
+    "quickstart",
+    "how-it-works",
+    "writing-specs",
+    "guides",
+    "reference",
+    "development"
+  ]
 }
-

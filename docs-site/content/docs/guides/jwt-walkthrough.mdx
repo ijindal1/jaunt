@@ -1,0 +1,126 @@
+---
+title: JWT Walkthrough
+description: "The hero 'wow gap' demo: small spec, real JWT implementation + tests."
+---
+
+This is the Jaunt story in one page: a readable spec stub becomes a pile of boring correctness work (strict parsing, edge cases, runnable tests).
+
+<Callout type="warning">
+  Running this guide calls the OpenAI API and will spend tokens. Make sure `OPENAI_API_KEY` is set.
+</Callout>
+
+## What We’re Building
+
+A minimal HS256 JWT implementation:
+
+- `create_token(user_id, secret, ttl=...) -> str`
+- `verify_token(token, secret) -> Claims`
+- `rotate_token(token, secret, ttl=...) -> str`
+
+## The Spec
+
+Spec file:
+
+- `jaunt-examples/jwt_auth/src/jwt_demo/specs.py`
+
+Key excerpt:
+
+```python
+from __future__ import annotations
+
+from datetime import timedelta
+
+import jaunt
+from pydantic import BaseModel
+
+
+class Claims(BaseModel):
+    """Decoded token payload."""
+
+    sub: str
+    iat: float
+    exp: float
+
+
+@jaunt.magic()
+def create_token(user_id: str, secret: str, *, ttl: timedelta = timedelta(hours=1)) -> str:
+    """
+    Create an HS256-signed JWT.
+
+    - base64url encoding must omit padding ("=" characters).
+    - Use HMAC-SHA256 with `secret` as the key.
+    - Raise ValueError if user_id is empty or ttl is not positive.
+    """
+    raise RuntimeError("spec stub (generated at build time)")
+```
+
+## Run The Build
+
+From the repo root:
+
+```bash
+uv sync
+export OPENAI_API_KEY=...
+uv run jaunt build --root jaunt-examples/jwt_auth
+```
+
+Jaunt writes the generated implementation under:
+
+- `jaunt-examples/jwt_auth/src/jwt_demo/__generated__/specs.py`
+
+## Look At The Output (Excerpts)
+
+The generator does the boring bits you don’t want to hand-roll.
+
+Base64url helper (no padding):
+
+```python
+def _b64url_encode_no_pad(data: bytes) -> str:
+    return base64.urlsafe_b64encode(data).decode("ascii").rstrip("=")
+```
+
+Real JWT assembly with canonical JSON:
+
+```python
+header_json = json.dumps(header_obj, separators=(",", ":"), sort_keys=True).encode("utf-8")
+payload_json = json.dumps(payload_obj, separators=(",", ":"), sort_keys=True).encode("utf-8")
+
+header_b64 = _b64url_encode_no_pad(header_json)
+payload_b64 = _b64url_encode_no_pad(payload_json)
+signing_input = f"{header_b64}.{payload_b64}"
+
+sig = hmac.new(secret.encode("utf-8"), signing_input.encode("utf-8"), hashlib.sha256).digest()
+sig_b64 = _b64url_encode_no_pad(sig)
+return f"{signing_input}.{sig_b64}"
+```
+
+## Generate And Run Tests
+
+```bash
+PYTHONPATH=jaunt-examples/jwt_auth/src uv run jaunt test --root jaunt-examples/jwt_auth
+```
+
+Jaunt writes generated tests under:
+
+- `jaunt-examples/jwt_auth/tests/__generated__/specs.py`
+
+Example generated test:
+
+```python
+def test_roundtrip_create_and_verify() -> None:
+    api = _load_api()
+    token = api.create_token("user-42", "s3cret")
+    claims = api.verify_token(token, "s3cret")
+    assert getattr(claims, "sub") == "user-42"
+    assert getattr(claims, "exp") > getattr(claims, "iat")
+```
+
+## The Skills Bonus
+
+Because the spec imports `pydantic`, `jaunt build` will (best-effort) generate and inject a PyPI skill:
+
+- `jaunt-examples/jwt_auth/.agents/skills/pydantic/SKILL.md`
+
+See: [Auto-Generated PyPI Skills](/docs/guides/pypi-skills).
+
+Next: [Adding Jaunt To Your Project](/docs/guides/adding-to-your-project).

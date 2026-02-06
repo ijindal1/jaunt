@@ -1,0 +1,83 @@
+---
+title: Adding Jaunt To Your Project
+description: "Practical setup for a real repo (config, where specs live, and how to ship generated code)."
+---
+
+This guide is for using Jaunt as a tool inside an existing Python repo, not for hacking on the Jaunt repo itself.
+
+## 1) Install Jaunt
+
+Install Jaunt however you vend it (local path, internal index, or git). You’ll also want pytest for `jaunt test`.
+
+Examples:
+
+```bash
+# Local checkout:
+uv add --editable /path/to/jaunt
+
+# Ensure pytest is installed for `jaunt test`:
+uv add pytest
+```
+
+## 2) Add `jaunt.toml`
+
+At your project root:
+
+```toml
+version = 1
+
+[paths]
+source_roots = ["src"]
+test_roots = ["tests"]
+generated_dir = "__generated__"
+```
+
+## 3) Pick A Good First Spec
+
+Best first targets:
+
+- validators
+- parsers
+- formatters
+- glue code (boring, correctness-heavy utilities)
+
+Avoid (for now):
+
+- high-performance hot paths
+- complex stateful systems with tight invariants
+
+## 4) Write Spec Stubs In Your Normal Source Tree
+
+Put `@jaunt.magic` specs in real modules under your package, next to the code that will call them. Treat them as your public API.
+
+## 5) Run `jaunt build`
+
+```bash
+export OPENAI_API_KEY=...
+jaunt build
+```
+
+## 6) Import And Use The Spec Module
+
+You import the spec module, not the generated module. The decorator forwards calls into `__generated__/`.
+
+## 7) Generated Code In Git: Commit Or Ignore?
+
+Two reasonable workflows:
+
+1. Commit generated code.
+2. Ignore generated code.
+
+Commit generated code:
+
+- Deterministic installs. CI doesn’t need LLM access.
+- You’ll see generated diffs in PRs.
+
+Ignore generated code:
+
+- Cleaner repo. Output stays disposable.
+- CI must run generation (so you need API keys in automation).
+
+Pick one and be consistent.
+
+Next: [CLI Reference](/docs/reference/cli).

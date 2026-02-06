@@ -1,6 +1,6 @@
 ---
 title: Configuration (jaunt.toml)
-description: Config keys and behavior.
+description: "Config keys and behavior."
 ---
 
 Jaunt discovers the project root by walking upward from the current working directory until it finds `jaunt.toml`.
@@ -22,25 +22,39 @@ Full config (all keys optional except `version`):
 version = 1
 
 [paths]
+# Directories to scan for build specs (relative to project root).
 source_roots = ["src", "."]
+# Directories to scan for test specs (relative to project root).
 test_roots = ["tests"]
+# Directory name inserted into import paths and used on disk.
+# Must be a valid Python identifier. Recommended: "__generated__".
 generated_dir = "__generated__"
 
 [llm]
+# Currently only "openai" is supported by the CLI.
 provider = "openai"
+# Model name passed to the backend (default: "gpt-5.2").
 model = "gpt-5.2"
+# Environment variable used for the API key (default: "OPENAI_API_KEY").
 api_key_env = "OPENAI_API_KEY"
 
 [build]
+# Max parallel workers for build generation.
 jobs = 8
+# Best-effort dependency inference (explicit deps always apply).
 infer_deps = true
 
 [test]
+# Max parallel workers for test generation.
 jobs = 4
+# Best-effort dependency inference for tests.
 infer_deps = true
+# Passed through to pytest as repeated "--pytest-args" flags.
 pytest_args = ["-q"]
 
 [prompts]
+# If set, these are treated as file paths and read at runtime by the backend.
+# Leave empty to use packaged defaults under src/jaunt/prompts/.
 build_system = ""
 build_module = ""
 test_system = ""
@@ -52,3 +66,4 @@ Notes:
 - `paths.source_roots`: the CLI picks the *first existing* source root as the output base for generated build modules.
 - `prompts.*` are treated as *file paths* and read at runtime by the OpenAI backend.
 
+Next: [Output Locations](/docs/reference/output).

@@ -1,0 +1,135 @@
+---
+title: "@jaunt.magic Specs"
+description: "How to write implementation specs that generate clean, boring, correct code."
+---
+
+`@jaunt.magic` turns a top-level Python function or class stub into a **spec**. At build time, Jaunt generates the real implementation. At runtime, the decorator forwards your calls into `__generated__/`.
+
+## The Basics
+
+A good magic spec has three parts:
+
+- **Signature**: type hints are part of the contract.
+- **Docstring**: this is the spec. Be precise about behavior, edge cases, and errors.
+- **Body**: placeholder only (convention: raise).
+
+```python
+from __future__ import annotations
+
+import jaunt
+
+
+@jaunt.magic()
+def normalize_email(raw: str) -> str:
+    """
+    Normalize an email address for stable comparisons.
+
+    Rules:
+    - Strip surrounding whitespace.
+    - Lowercase the whole string.
+    - Must contain exactly one "@".
+    - Local-part and domain must both be non-empty after splitting.
+
+    Errors:
+    - Raise ValueError if `raw` is invalid by the rules above.
+    """
+    raise RuntimeError("spec stub (generated at build time)")
+```
+
+## Anatomy Of A Good Spec
+
+### Signature
+
+If your spec says it returns `str`, the generator should not "helpfully" return `None` or a dict. If it takes `timedelta`, don't leave it as `Any`. Types are leverage.
+
+### Docstring
+
+Write it like a really good ticket:
+
+- say what the function **must do**
+- name the **inputs that should fail** and how they fail
+- include 1-3 **examples** if subtle
+
+### Body
+
+The body is not used. Keep it obvious:
+
+```python
+raise RuntimeError("spec stub (generated at build time)")
+```
+
+## Dependencies (`deps=...`)
+
+If a spec depends on another spec, declare it. This gives Jaunt a stable build order and correct staleness propagation.
+
+```python
+from __future__ import annotations
+
+import jaunt
+
+
+@jaunt.magic()
+def normalize_email(raw: str) -> str:
+    """..."""
+    raise RuntimeError("spec stub (generated at build time)")
+
+
+@jaunt.magic(deps=[normalize_email])
+def is_corporate_email(raw: str, *, domain: str = "example.com") -> bool:
+    """
+    Return True iff `normalize_email(raw)` belongs to `domain`.
+
+    - If normalize_email raises ValueError, propagate it unchanged.
+    - Comparison should be case-insensitive.
+    """
+    raise RuntimeError("spec stub (generated at build time)")
+```
+
+See: [Dependencies](/docs/writing-specs/dependencies).
+
+## Decorator Options
+
+- `deps=...`: explicit dependencies (objects or `"pkg.mod:Qualname"` strings).
+- `prompt="..."`: extra per-symbol context appended to what the LLM sees.
+- `infer_deps=True|False`: per-spec override of dependency inference.
+
+Example `prompt=`:
+
+```python
+@jaunt.magic(prompt="Prefer the standard library. Avoid heavy dependencies.")
+def slugify(title: str) -> str:
+    """..."""
+    raise RuntimeError("spec stub (generated at build time)")
+```
+
+## Classes Work Too
+
+You can decorate top-level classes. At runtime, Jaunt will substitute the generated class (or raise `JauntNotBuiltError` if you haven’t built yet).
+
+```python
+import jaunt
+
+
+@jaunt.magic()
+class LRUCache:
+    """
+    A small fixed-capacity LRU cache.
+
+    - get(key): return value or None, and mark as most-recently used
+    - put(key, value): insert/update and evict least-recently used if needed
+    """
+    pass
+```
+
+MVP constraint: custom metaclasses are not supported for `@jaunt.magic` classes.
+
+## If The Output Is Garbage
+
+Don't "fix the generated file." Fix the spec.
+
+1. Make the docstring more specific.
+2. Add edge cases + explicit error behavior.
+3. Use `prompt=` for any crucial constraints.
+4. Re-run `jaunt build` (Jaunt will regenerate stale modules only).
+
+Next: [@jaunt.test Specs](/docs/writing-specs/test-specs).

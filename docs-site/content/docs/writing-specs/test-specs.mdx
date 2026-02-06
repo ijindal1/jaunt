@@ -1,0 +1,50 @@
+---
+title: "@jaunt.test Specs"
+description: "How to write test intent stubs that Jaunt turns into real pytest tests."
+---
+
+`@jaunt.test` specs are not tests. They’re **descriptions of tests**. Jaunt generates real pytest tests under `tests/__generated__/`.
+
+## Rules
+
+- Must be **top-level** functions.
+- Name them like pytest tests (`test_*`) so generated tests are collected.
+- The stub itself is marked `__test__ = False` so pytest won’t collect it.
+
+## Annotated Example
+
+```python
+from __future__ import annotations
+
+import jaunt
+
+
+@jaunt.test()
+def test_normalize_email__lowercases_and_strips() -> None:
+    """
+    Assert normalize_email:
+    - strips surrounding whitespace
+    - lowercases
+    - rejects invalid inputs like "no-at-sign" (ValueError)
+
+    Concrete assertions (write these out, don’t imply them):
+    - normalize_email("  A@B.COM  ") == "a@b.com"
+    """
+    raise AssertionError("spec stub (generated at test time)")
+```
+
+## Tips That Make Generated Tests Better
+
+- **Be explicit about assertions**: write `X == Y` in the docstring.
+- **Name edge cases**: empty strings, invalid formats, boundary values.
+- **Import the thing you’re testing** inside the docstring or stub body if needed. The generator tends to do better when it sees the intended import path.
+
+## Running
+
+```bash
+PYTHONPATH=src jaunt test
+```
+
+See: [Output Locations](/docs/reference/output).
+
+Next: [Dependencies](/docs/writing-specs/dependencies).
