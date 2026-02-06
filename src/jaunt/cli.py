@@ -195,9 +195,7 @@ def cmd_build(args: argparse.Namespace) -> int:
                 _eprint(f"warn: {w}")
             skills_block = skills_res.skills_block
         except Exception as e:  # noqa: BLE001 - best-effort; never block build
-            _eprint(
-                f"warn: failed ensuring external library skills: {type(e).__name__}: {e}"
-            )
+            _eprint(f"warn: failed ensuring external library skills: {type(e).__name__}: {e}")
 
         _prepend_sys_path(source_dirs)
 
@@ -292,8 +290,8 @@ def cmd_test(args: argparse.Namespace) -> int:
                 return rc
 
         from jaunt import discovery, registry
-        from jaunt.digest import extract_source_segment
         from jaunt.deps import build_spec_graph, collapse_to_module_dag
+        from jaunt.digest import extract_source_segment
         from jaunt.spec_ref import SpecRef
 
         # Provide production API reference material (from @jaunt.magic) so
