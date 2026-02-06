@@ -20,3 +20,7 @@ Rules:
 - Generate tests only (no production implementation).
 - Do not import from `{{generated_module}}` (that would be a circular import).
 - Do not edit user files; only output test module source code.
+- Do not guess or search for application modules like `app`, `main`, `token`, etc.
+- Import the production APIs under test from the modules listed in Dependency APIs above.
+  - Each Dependency API entry key is like `<module>:<qualname>`; import from `<module>`.
+- Do not import production APIs from the test spec module (`{{spec_module}}`); it contains only `@jaunt.test` stubs.

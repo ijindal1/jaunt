@@ -190,6 +190,7 @@ async def run_test_generation(
     project_dir: Path,
     tests_package: str,
     generated_dir: str,
+    dependency_apis: dict[SpecRef, str] | None = None,
     module_specs: dict[str, list[SpecEntry]],
     specs: dict[SpecRef, SpecEntry],
     spec_graph: dict[SpecRef, set[SpecRef]],
@@ -254,7 +255,7 @@ async def run_test_generation(
             expected_names=expected,
             spec_sources=spec_sources,
             decorator_prompts=decorator_prompts,
-            dependency_apis={},
+            dependency_apis=dependency_apis or {},
             dependency_generated_modules={},
         )
 
@@ -366,6 +367,7 @@ async def run_tests(
     project_dir: Path,
     tests_package: str = "tests",
     generated_dir: str = "__generated__",
+    dependency_apis: dict[SpecRef, str] | None = None,
     module_specs: dict[str, list[SpecEntry]] | None = None,
     specs: dict[SpecRef, SpecEntry] | None = None,
     spec_graph: dict[SpecRef, set[SpecRef]] | None = None,
@@ -399,6 +401,7 @@ async def run_tests(
             project_dir=project_dir,
             tests_package=tests_package,
             generated_dir=generated_dir,
+            dependency_apis=dependency_apis,
             module_specs=module_specs,
             specs=specs,
             spec_graph=spec_graph,

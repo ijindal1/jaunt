@@ -292,7 +292,31 @@ def cmd_test(args: argparse.Namespace) -> int:
                 return rc
 
         from jaunt import discovery, registry
+        from jaunt.digest import extract_source_segment
         from jaunt.deps import build_spec_graph, collapse_to_module_dag
+        from jaunt.spec_ref import SpecRef
+
+        # Provide production API reference material (from @jaunt.magic) so
+        # test generation can import the real APIs instead of guessing module names.
+        magic_dependency_apis: dict[SpecRef, str] = {}
+        if bool(args.no_build):
+            registry.clear_registries()
+            src_mods = discovery.discover_modules(
+                roots=[d for d in source_dirs if d.exists()],
+                exclude=[],
+                generated_dir=cfg.paths.generated_dir,
+            )
+            discovery.import_and_collect(src_mods, kind="magic")
+            magic_dependency_apis = {
+                ref: extract_source_segment(entry)
+                for ref, entry in registry.get_magic_registry().items()
+            }
+        else:
+            # cmd_build() already imported and registered magic specs.
+            magic_dependency_apis = {
+                ref: extract_source_segment(entry)
+                for ref, entry in registry.get_magic_registry().items()
+            }
 
         registry.clear_registries()
         modules_set: set[str] = set()
@@ -349,6 +373,7 @@ def cmd_test(args: argparse.Namespace) -> int:
         result = tester.run_tests(
             project_dir=root,
             generated_dir=cfg.paths.generated_dir,
+            dependency_apis=magic_dependency_apis,
             module_specs=module_specs,
             specs=specs,
             spec_graph=spec_graph,
