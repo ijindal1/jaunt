@@ -24,8 +24,6 @@ def test_basic_parsing() -> None:
 
     parse_csv(text, User) should return [User("Alice", 30, True), User("Bob", 25, False)].
     """
-    from dataclasses import dataclass
-    from csv_demo.specs import parse_csv
     raise AssertionError("spec stub (generated at test time)")
 
 
@@ -38,8 +36,6 @@ def test_whitespace_handling() -> None:
     CSV: "name , age \\n  Alice , 30 "
     Should still parse correctly.
     """
-    from dataclasses import dataclass
-    from csv_demo.specs import parse_csv
     raise AssertionError("spec stub (generated at test time)")
 
 
@@ -52,8 +48,6 @@ def test_strict_mode_extra_column_raises() -> None:
     Dataclass has fields: name, age
     CSV has headers: name, age, email
     """
-    from dataclasses import dataclass
-    from csv_demo.specs import parse_csv
     raise AssertionError("spec stub (generated at test time)")
 
 
@@ -72,8 +66,6 @@ def test_lenient_mode_skips_bad_rows() -> None:
 
     Result should be [User("Alice", 30), User("Carol", 25)].
     """
-    from dataclasses import dataclass
-    from csv_demo.specs import parse_csv
     raise AssertionError("spec stub (generated at test time)")
 
 
@@ -83,7 +75,6 @@ def test_not_a_dataclass_raises() -> None:
     parse_csv("a\\n1", dict) should raise TypeError
     because dict is not a dataclass.
     """
-    from csv_demo.specs import parse_csv
     raise AssertionError("spec stub (generated at test time)")
 
 
@@ -93,6 +84,4 @@ def test_bool_coercion_variants() -> None:
     All of these should coerce to True: "true", "True", "TRUE", "1", "yes", "YES"
     All of these should coerce to False: "false", "False", "0", "no", "NO"
     """
-    from dataclasses import dataclass
-    from csv_demo.specs import parse_csv
     raise AssertionError("spec stub (generated at test time)")

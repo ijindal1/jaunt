@@ -6,8 +6,7 @@ Parse CSV text into typed dataclass instances with validation.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import TypeVar, Type
+from typing import TypeVar
 
 import jaunt
 
@@ -17,7 +16,7 @@ T = TypeVar("T")
 @jaunt.magic()
 def parse_csv(
     text: str,
-    target: Type[T],
+    target: type[T],
     *,
     delimiter: str = ",",
     strict: bool = True,
@@ -63,7 +62,7 @@ def parse_csv(
 @jaunt.magic(deps=[parse_csv])
 def parse_csv_file(
     path: str,
-    target: Type[T],
+    target: type[T],
     *,
     encoding: str = "utf-8",
     delimiter: str = ",",

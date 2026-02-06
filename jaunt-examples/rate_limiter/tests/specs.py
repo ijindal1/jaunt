@@ -15,7 +15,6 @@ def test_allows_up_to_limit() -> None:
 
     Use a fake clock fixed at t=1000.0.
     """
-    from limiter_demo.specs import SlidingWindowLimiter
     raise AssertionError("spec stub (generated at test time)")
 
 
@@ -30,7 +29,6 @@ def test_window_expiry_frees_capacity() -> None:
 
     Use a fake clock whose .now() return value you can advance.
     """
-    from limiter_demo.specs import SlidingWindowLimiter
     raise AssertionError("spec stub (generated at test time)")
 
 
@@ -41,7 +39,6 @@ def test_remaining_count() -> None:
     - Before any requests: remaining("k") == 5
     - After 3 allowed requests: remaining("k") == 2
     """
-    from limiter_demo.specs import SlidingWindowLimiter
     raise AssertionError("spec stub (generated at test time)")
 
 
@@ -56,7 +53,6 @@ def test_independent_keys() -> None:
     - allow("a") -> False
     - allow("b") -> False
     """
-    from limiter_demo.specs import SlidingWindowLimiter
     raise AssertionError("spec stub (generated at test time)")
 
 
@@ -67,6 +63,4 @@ def test_invalid_constructor_args() -> None:
     - window_seconds=0 should raise ValueError
     - window_seconds=-1 should raise ValueError
     """
-    import pytest
-    from limiter_demo.specs import SlidingWindowLimiter
     raise AssertionError("spec stub (generated at test time)")
