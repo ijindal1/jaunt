@@ -5,6 +5,8 @@ __pycache__/
 
 **/__generated__/
 
+.agents/
+
 .venv/
 .ruff_cache/
 .pytest_cache/
