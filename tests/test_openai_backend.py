@@ -74,6 +74,7 @@ def test_openai_backend_renders_expected_names_and_kind_specific_rules(monkeypat
 
     # Test prompts: must generate tests only.
     assert ("Generate tests only" in test_user) or ("tests only" in test_system)
+    assert "Do not guess" in test_user
 
 
 def test_openai_backend_errors_when_api_key_missing(monkeypatch) -> None:

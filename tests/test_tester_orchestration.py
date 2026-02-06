@@ -93,3 +93,52 @@ def test_generated():
     # Run pytest only on the generated file (should pass).
     assert run_pytest([gen_file], pytest_args=["-q"]) == 0
 
+
+def test_run_test_generation_threads_dependency_apis_into_backend_ctx(tmp_path: Path) -> None:
+    project = tmp_path / "proj"
+    (project / "src").mkdir(parents=True, exist_ok=True)
+    (project / "tests").mkdir(parents=True, exist_ok=True)
+
+    spec_path = project / "tests" / "specs_mod.py"
+    _write(
+        spec_path,
+        """
+def test_generated():
+    # stub; only used for digest/source extraction
+    raise AssertionError("should not run")
+""".lstrip(),
+    )
+
+    e = _entry(module="tests.specs_mod", qualname="test_generated", source_file=str(spec_path))
+    specs = {e.spec_ref: e}
+    spec_graph = build_spec_graph(specs, infer_default=False)
+    module_specs = {"tests.specs_mod": [e]}
+    module_dag = {"tests.specs_mod": set()}
+
+    sentinel = {normalize_spec_ref("api_mod:foo"): "def foo() -> int: ...\n"}
+
+    class AssertingBackend(GeneratorBackend):
+        async def generate_module(
+            self, ctx: ModuleSpecContext, *, extra_error_context: list[str] | None = None
+        ) -> str:
+            assert ctx.dependency_apis == sentinel
+            return "def test_generated():\n    assert True\n"
+
+    backend = AssertingBackend()
+    report = asyncio.run(
+        run_test_generation(
+            project_dir=project,
+            tests_package="tests",
+            generated_dir="__generated__",
+            dependency_apis=sentinel,
+            module_specs=module_specs,
+            specs=specs,
+            spec_graph=spec_graph,
+            module_dag=module_dag,
+            stale_modules={"tests.specs_mod"},
+            backend=backend,
+            jobs=1,
+        )
+    )
+
+    assert report.failed == {}
