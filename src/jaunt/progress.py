@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from shutil import get_terminal_size
 
 
-@dataclass(slots=True)
+@dataclass
 class ProgressBar:
     label: str
     total: int
@@ -74,4 +74,3 @@ class ProgressBar:
         msg = msg[: max(0, cols - 1)]
 
         self._write("\r" + msg)
-

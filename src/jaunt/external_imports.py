@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import ast
+import functools
 import os
 import re
 import sys
@@ -107,6 +108,7 @@ def _discover_internal_top_levels(*, source_roots: Sequence[Path]) -> set[str]:
     return internal
 
 
+@functools.lru_cache(maxsize=256)
 def _resolve_dist_by_name_heuristic(import_mod: str) -> tuple[str, str] | None:
     """Best-effort: try dists derived from dotted module path.
 
@@ -130,9 +132,7 @@ def _resolve_dist_by_name_heuristic(import_mod: str) -> tuple[str, str] | None:
     return None
 
 
-def _choose_dist_for_top_level(
-    top_level: str, *, candidates: Sequence[str]
-) -> str | None:
+def _choose_dist_for_top_level(top_level: str, *, candidates: Sequence[str]) -> str | None:
     if not candidates:
         return None
     if len(candidates) == 1:
@@ -213,9 +213,7 @@ def discover_external_distributions_with_warnings(
             continue
         except Exception as e:
             err = f"{type(e).__name__}: {e}"
-            warnings.append(
-                f"could not resolve installed version for distribution '{dist}': {err}"
-            )
+            warnings.append(f"could not resolve installed version for distribution '{dist}': {err}")
             continue
 
         out.setdefault(dist, ver)

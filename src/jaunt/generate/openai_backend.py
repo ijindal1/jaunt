@@ -1,45 +1,70 @@
 from __future__ import annotations
 
+import asyncio
+import json
+import logging
 import os
-import re
-from importlib import resources
-from pathlib import Path
 from typing import Any
 
 from jaunt.config import LLMConfig, PromptsConfig
 from jaunt.errors import JauntConfigError
 from jaunt.generate.base import GeneratorBackend, ModuleSpecContext
+from jaunt.generate.shared import (
+    fmt_kv_block,
+    load_prompt,
+    render_template,
+    strip_markdown_fences,
+)
+
+logger = logging.getLogger("jaunt.generate.openai")
+
+_MAX_API_RETRIES = 4
+_BASE_BACKOFF_S = 1.0
+
+# Aliases for backward compatibility (tests import these names directly).
+_strip_markdown_fences = strip_markdown_fences
+_fmt_kv_block = fmt_kv_block
 
 
-def render_template(text: str, mapping: dict[str, str]) -> str:
-    """Very small template renderer: replaces `{{name}}` placeholders."""
-
-    rendered = text
-    for key, value in mapping.items():
-        rendered = rendered.replace(f"{{{{{key}}}}}", value)
-    return rendered
-
-
-_FENCE_RE = re.compile(r"^\s*```[a-zA-Z0-9_-]*\s*\n(?P<code>.*)\n\s*```\s*$", re.DOTALL)
-
-
-def _strip_markdown_fences(text: str) -> str:
-    m = _FENCE_RE.match(text or "")
-    if not m:
-        return (text or "").strip()
-    return (m.group("code") or "").strip()
+def _is_retryable(exc: BaseException) -> bool:
+    """Return True for transient API errors worth retrying."""
+    # openai.RateLimitError, openai.APITimeoutError, openai.APIConnectionError,
+    # and 5xx APIStatusError are retryable.
+    cls_name = type(exc).__name__
+    if cls_name in ("RateLimitError", "APITimeoutError", "APIConnectionError"):
+        return True
+    if cls_name == "APIStatusError":
+        status = getattr(exc, "status_code", 0)
+        return int(status) >= 500
+    # Catch generic connection/timeout errors.
+    if isinstance(exc, (TimeoutError, ConnectionError, OSError)):
+        return True
+    return False
 
 
-def _fmt_kv_block(items: list[tuple[str, str]], *, empty: str = "(none)") -> str:
-    if not items:
-        return empty
-    chunks: list[str] = []
-    for key, value in items:
-        chunks.append(f"# {key}\n{value.rstrip()}\n")
-    return "\n".join(chunks).rstrip() + "\n"
+_OPENAI_MODULE_RESPONSE_FORMAT: dict[str, Any] = {
+    "type": "json_schema",
+    "json_schema": {
+        "name": "module_output",
+        "strict": True,
+        "schema": {
+            "type": "object",
+            "properties": {
+                "python_source": {"type": "string"},
+                "imports_used": {"type": "array", "items": {"type": "string"}},
+            },
+            "required": ["python_source"],
+            "additionalProperties": False,
+        },
+    },
+}
 
 
 class OpenAIBackend(GeneratorBackend):
+    @property
+    def supports_structured_output(self) -> bool:
+        return True
+
     def __init__(self, llm: LLMConfig, prompts: PromptsConfig | None = None) -> None:
         api_key = (os.environ.get(llm.api_key_env) or "").strip()
         if not api_key:
@@ -49,9 +74,13 @@ class OpenAIBackend(GeneratorBackend):
             )
         self._model = llm.model
 
-        # OpenAI SDK is an optional import for the rest of the system; only this
-        # backend module imports it.
-        from openai import AsyncOpenAI
+        try:
+            from openai import AsyncOpenAI
+        except ImportError as e:
+            raise JauntConfigError(
+                "The 'openai' package is required for provider='openai'. "
+                "Install it with: pip install jaunt[openai]"
+            ) from e
 
         self._client: Any = AsyncOpenAI(api_key=api_key)
 
@@ -65,25 +94,73 @@ class OpenAIBackend(GeneratorBackend):
         self._test_system = self._load_prompt("test_system.md", test_system_override)
         self._test_module = self._load_prompt("test_module.md", test_module_override)
 
-    def _load_prompt(self, default_name: str, override_path: str | None) -> str:
-        if override_path:
-            return Path(override_path).read_text(encoding="utf-8")
-
-        # Prompts are packaged under src/jaunt/prompts/** (see pyproject include).
-        p = resources.files("jaunt") / "prompts" / default_name
-        return p.read_text(encoding="utf-8")
+    @staticmethod
+    def _load_prompt(default_name: str, override_path: str | None) -> str:
+        return load_prompt(default_name, override_path)
 
     async def _call_openai(self, messages: list[dict[str, str]]) -> str:
-        # Keep this as a small method so tests can patch it without relying on
-        # SDK internals (which change frequently).
-        resp: Any = await self._client.chat.completions.create(
-            model=self._model,
-            messages=messages,
-        )
-        content = resp.choices[0].message.content
-        if not isinstance(content, str):
-            raise RuntimeError("OpenAI returned empty content.")
-        return content
+        """Call OpenAI API with retry and exponential backoff for transient errors."""
+        last_exc: BaseException | None = None
+        for attempt in range(_MAX_API_RETRIES):
+            try:
+                resp: Any = await self._client.chat.completions.create(
+                    model=self._model,
+                    messages=messages,
+                )
+                content = resp.choices[0].message.content
+                if not isinstance(content, str):
+                    raise RuntimeError("OpenAI returned empty content.")
+                return content
+            except Exception as exc:
+                last_exc = exc
+                if not _is_retryable(exc) or attempt >= _MAX_API_RETRIES - 1:
+                    raise
+                delay = _BASE_BACKOFF_S * (2**attempt)
+                logger.warning(
+                    "OpenAI API error (attempt %d/%d), retrying in %.1fs: %s",
+                    attempt + 1,
+                    _MAX_API_RETRIES,
+                    delay,
+                    exc,
+                )
+                await asyncio.sleep(delay)
+
+        raise last_exc  # type: ignore[misc]
+
+    async def _call_openai_structured(self, messages: list[dict[str, str]]) -> str:
+        """Call OpenAI API with structured output (json_schema response_format)."""
+        last_exc: BaseException | None = None
+        for attempt in range(_MAX_API_RETRIES):
+            try:
+                resp: Any = await self._client.chat.completions.create(
+                    model=self._model,
+                    messages=messages,
+                    response_format=_OPENAI_MODULE_RESPONSE_FORMAT,
+                )
+                content = resp.choices[0].message.content
+                if not isinstance(content, str):
+                    raise RuntimeError("OpenAI returned empty content.")
+                parsed = json.loads(content)
+                source = parsed["python_source"]
+                imports = parsed.get("imports_used", [])
+                if imports:
+                    logger.debug("Structured output imports_used: %s", imports)
+                return source
+            except Exception as exc:
+                last_exc = exc
+                if not _is_retryable(exc) or attempt >= _MAX_API_RETRIES - 1:
+                    raise
+                delay = _BASE_BACKOFF_S * (2**attempt)
+                logger.warning(
+                    "OpenAI API error (attempt %d/%d), retrying in %.1fs: %s",
+                    attempt + 1,
+                    _MAX_API_RETRIES,
+                    delay,
+                    exc,
+                )
+                await asyncio.sleep(delay)
+
+        raise last_exc  # type: ignore[misc]
 
     def _render_messages(
         self, ctx: ModuleSpecContext, *, extra_error_context: list[str] | None
@@ -142,5 +219,7 @@ class OpenAIBackend(GeneratorBackend):
         self, ctx: ModuleSpecContext, *, extra_error_context: list[str] | None = None
     ) -> str:
         messages = self._render_messages(ctx, extra_error_context=extra_error_context)
+        if self.supports_structured_output:
+            return await self._call_openai_structured(messages)
         raw = await self._call_openai(messages)
         return _strip_markdown_fences(raw)

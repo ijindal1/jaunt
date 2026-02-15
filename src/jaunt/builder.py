@@ -249,8 +249,43 @@ async def run_build(
             heapq.heappush(ready, (-prio.get(m, 0), m))
 
     generated: set[str] = set()
+    generated_sources: dict[str, str] = {}  # module_name -> generated source
     failed: dict[str, list[str]] = {}
     completed: set[str] = set()
+
+    # Track generated source for dependency context injection.
+    generated_sources: dict[str, str] = {}
+
+    def _collect_dependency_context(
+        module_name: str,
+    ) -> tuple[dict[SpecRef, str], dict[str, str]]:
+        """Collect API signatures and generated source from dependency modules."""
+        dep_apis: dict[SpecRef, str] = {}
+        dep_gen: dict[str, str] = {}
+
+        dep_modules = module_dag.get(module_name, set())
+        for dep_mod in dep_modules:
+            # Collect spec API signatures from dependency modules.
+            for dep_entry in module_specs.get(dep_mod, []):
+                try:
+                    dep_apis[dep_entry.spec_ref] = extract_source_segment(dep_entry)
+                except Exception:
+                    pass
+
+            # Collect already-generated source (from this build or pre-existing).
+            if dep_mod in generated_sources:
+                dep_gen[dep_mod] = generated_sources[dep_mod]
+            else:
+                # Try reading from disk (pre-existing generated file).
+                relpath = _generated_relpath(dep_mod, generated_dir=generated_dir)
+                gen_path = package_dir / relpath
+                try:
+                    if gen_path.exists():
+                        dep_gen[dep_mod] = gen_path.read_text(encoding="utf-8")
+                except Exception:
+                    pass
+
+        return dep_apis, dep_gen
 
     async def build_one(module_name: str) -> tuple[bool, list[str]]:
         entries = module_specs.get(module_name, [])
@@ -264,6 +299,8 @@ async def run_build(
             if isinstance(p, str) and p:
                 decorator_prompts[e.spec_ref] = p
 
+        dep_apis, dep_gen = _collect_dependency_context(module_name)
+
         ctx = ModuleSpecContext(
             kind="build",
             spec_module=module_name,
@@ -273,8 +310,8 @@ async def run_build(
             expected_names=expected,
             spec_sources=spec_sources,
             decorator_prompts=decorator_prompts,
-            dependency_apis={},
-            dependency_generated_modules={},
+            dependency_apis=dep_apis,
+            dependency_generated_modules=dep_gen,
             skills_block=skills_block,
         )
 
@@ -285,6 +322,9 @@ async def run_build(
         errors = validate_generated_source(result.source, expected)
         if errors:
             return False, errors
+
+        # Store generated source for downstream dependents.
+        generated_sources[module_name] = result.source
 
         digest = module_digest(module_name, entries, specs, spec_graph)
         header_fields = {
@@ -302,6 +342,8 @@ async def run_build(
             source=result.source,
             header_fields=header_fields,
         )
+        # Store generated source so downstream modules get it as context.
+        generated_sources[module_name] = result.source
         return True, []
 
     async def complete(m: str) -> None:
