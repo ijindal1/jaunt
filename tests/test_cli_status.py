@@ -69,6 +69,20 @@ def test_cmd_status_no_specs(tmp_path: Path, monkeypatch, capsys) -> None:
     assert data["fresh"] == []
 
 
+def test_cmd_status_no_specs_non_json(tmp_path: Path, monkeypatch, capsys) -> None:
+    monkeypatch.chdir(tmp_path)
+    _write(tmp_path / "jaunt.toml", "version = 1\n")
+    (tmp_path / "src").mkdir()
+
+    ns = jaunt.cli.parse_args(["status"])
+    rc = jaunt.cli.cmd_status(ns)
+    assert rc == 0
+
+    captured = capsys.readouterr()
+    assert "Status: 0 module(s) total" in captured.out
+    assert "No magic specs discovered." in captured.out
+
+
 def test_cmd_status_with_stale_specs(tmp_path: Path, monkeypatch, capsys) -> None:
     """Status should report stale modules when no generated files exist."""
     from jaunt.registry import clear_registries
@@ -91,6 +105,34 @@ def test_cmd_status_with_stale_specs(tmp_path: Path, monkeypatch, capsys) -> Non
         assert data["ok"] is True
         assert f"{pkg}.specs" in data["stale"]
         assert data["fresh"] == []
+    finally:
+        clear_registries()
+        sys.path[:] = orig_path
+        for mod_name in list(sys.modules.keys()):
+            if mod_name not in before_modules:
+                del sys.modules[mod_name]
+
+
+def test_cmd_status_with_stale_specs_non_json(tmp_path: Path, monkeypatch, capsys) -> None:
+    from jaunt.registry import clear_registries
+
+    pkg = "statuspkg_stale_text"
+    _make_spec_project(tmp_path, pkg=pkg)
+
+    monkeypatch.chdir(tmp_path)
+    orig_path = list(sys.path)
+    before_modules = set(sys.modules.keys())
+
+    try:
+        ns = jaunt.cli.parse_args(["status"])
+        rc = jaunt.cli.cmd_status(ns)
+        assert rc == 0
+
+        captured = capsys.readouterr()
+        assert "Status: 1 module(s) total" in captured.out
+        assert "Stale (1):" in captured.out
+        assert f"- {pkg}.specs" in captured.out
+        assert "Fresh (0):" in captured.out
     finally:
         clear_registries()
         sys.path[:] = orig_path
@@ -162,6 +204,68 @@ def test_cmd_status_with_fresh_specs(tmp_path: Path, monkeypatch, capsys) -> Non
         assert data["ok"] is True
         assert data["stale"] == []
         assert f"{pkg}.specs" in data["fresh"]
+    finally:
+        clear_registries()
+        sys.path[:] = orig_path
+        for mod_name in list(sys.modules.keys()):
+            if mod_name not in before_modules:
+                del sys.modules[mod_name]
+
+
+def test_cmd_status_with_fresh_specs_non_json(tmp_path: Path, monkeypatch, capsys) -> None:
+    from jaunt.builder import write_generated_module
+    from jaunt.deps import build_spec_graph
+    from jaunt.digest import module_digest
+    from jaunt.discovery import discover_modules, import_and_collect
+    from jaunt.registry import clear_registries, get_magic_registry, get_specs_by_module
+
+    pkg = "statuspkg_fresh_text"
+    _make_spec_project(tmp_path, pkg=pkg)
+
+    monkeypatch.chdir(tmp_path)
+    orig_path = list(sys.path)
+    before_modules = set(sys.modules.keys())
+
+    try:
+        sys.path.insert(0, str(tmp_path / "src"))
+        clear_registries()
+
+        mods = discover_modules(roots=[tmp_path / "src"], exclude=[], generated_dir="__generated__")
+        import_and_collect(mods, kind="magic")
+        specs = dict(get_magic_registry())
+        spec_graph = build_spec_graph(specs, infer_default=False)
+        module_specs = get_specs_by_module("magic")
+        entries = module_specs[f"{pkg}.specs"]
+        digest = module_digest(f"{pkg}.specs", entries, specs, spec_graph)
+
+        write_generated_module(
+            package_dir=tmp_path / "src",
+            generated_dir="__generated__",
+            module_name=f"{pkg}.specs",
+            source="def greet(name: str) -> str:\n    return f'Hello, {name}!'\n",
+            header_fields={
+                "tool_version": "0",
+                "kind": "build",
+                "source_module": f"{pkg}.specs",
+                "module_digest": digest,
+                "spec_refs": [str(e.spec_ref) for e in entries],
+            },
+        )
+
+        clear_registries()
+        for mod_name in list(sys.modules.keys()):
+            if mod_name not in before_modules:
+                del sys.modules[mod_name]
+
+        ns = jaunt.cli.parse_args(["status"])
+        rc = jaunt.cli.cmd_status(ns)
+        assert rc == 0
+
+        captured = capsys.readouterr()
+        assert "Status: 1 module(s) total" in captured.out
+        assert "Stale (0):" in captured.out
+        assert "Fresh (1):" in captured.out
+        assert f"- {pkg}.specs" in captured.out
     finally:
         clear_registries()
         sys.path[:] = orig_path

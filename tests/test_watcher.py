@@ -391,9 +391,14 @@ def test_cycle_runner_calls_cmd_build(monkeypatch) -> None:
 
 def test_cycle_runner_calls_cmd_test_when_enabled(monkeypatch) -> None:
     build_calls: list[object] = []
-    test_calls: list[object] = []
+    test_calls: list[tuple[bool, bool, list[str]]] = []
     monkeypatch.setattr("jaunt.cli.cmd_build", lambda args: (build_calls.append(args), 0)[1])
-    monkeypatch.setattr("jaunt.cli.cmd_test", lambda args: (test_calls.append(args), 0)[1])
+
+    def fake_cmd_test(args: Any) -> int:
+        test_calls.append((bool(args.no_build), bool(args.no_run), list(args.pytest_args)))
+        return 0
+
+    monkeypatch.setattr("jaunt.cli.cmd_test", fake_cmd_test)
 
     import jaunt.cli
 
@@ -406,6 +411,7 @@ def test_cycle_runner_calls_cmd_test_when_enabled(monkeypatch) -> None:
     assert result.test_exit_code == 0
     assert len(build_calls) == 1
     assert len(test_calls) == 1
+    assert test_calls[0] == (True, False, [])
 
 
 def test_cycle_runner_skips_test_on_build_failure(monkeypatch) -> None:

@@ -13,7 +13,10 @@ def _make_min_project(root: Path, *, generated_dir: str = "__generated__") -> No
     (root / "src").mkdir(parents=True, exist_ok=True)
     (root / "tests").mkdir(parents=True, exist_ok=True)
     (root / "jaunt.toml").write_text(
-        f'version = 1\n\n[paths]\ngenerated_dir = "{generated_dir}"\n',
+        (
+            f'version = 1\n\n[paths]\nsource_roots = ["src"]\n'
+            f'test_roots = ["tests"]\ngenerated_dir = "{generated_dir}"\n'
+        ),
         encoding="utf-8",
     )
     # Create generated dirs in source roots
@@ -137,6 +140,20 @@ def test_cmd_clean_custom_generated_dir(tmp_path: Path, monkeypatch) -> None:
     assert rc == 0
     assert not (tmp_path / "src" / "pkg" / "__gen__").exists()
     assert not (tmp_path / "tests" / "__gen__").exists()
+
+
+def test_cmd_clean_does_not_remove_unmanaged_generated_dirs(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.chdir(tmp_path)
+    _make_min_project(tmp_path)
+    unmanaged = tmp_path / "misc" / "__generated__"
+    unmanaged.mkdir(parents=True, exist_ok=True)
+    (unmanaged / "keep.txt").write_text("keep", encoding="utf-8")
+
+    ns = jaunt.cli.parse_args(["clean"])
+    rc = jaunt.cli.cmd_clean(ns)
+    assert rc == 0
+    assert unmanaged.exists()
+    assert (unmanaged / "keep.txt").exists()
 
 
 def test_cmd_clean_missing_config(tmp_path: Path, monkeypatch) -> None:
