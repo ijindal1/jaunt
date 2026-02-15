@@ -36,9 +36,7 @@ def _run_cli_json(argv: list[str]) -> str:
         jaunt.cli.main(argv)
     output = buf.getvalue().strip()
     if not output:
-        return json.dumps(
-            {"command": cmd_name, "ok": False, "error": "command produced no output"}
-        )
+        return json.dumps({"command": cmd_name, "ok": False, "error": "command produced no output"})
 
     # When multiple JSON documents are emitted (e.g. build + test), keep the
     # last one — it corresponds to the top-level command the caller invoked.
