@@ -826,7 +826,8 @@ def cmd_mcp(args: argparse.Namespace) -> int:
     except ImportError:
         _eprint("error: fastmcp is not installed. Install it with: pip install jaunt[mcp]")
         return EXIT_CONFIG_OR_DISCOVERY
-    run_server()
+    root = getattr(args, "root", None)
+    run_server(root=root)
     return EXIT_OK
 
 

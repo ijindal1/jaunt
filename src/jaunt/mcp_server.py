@@ -30,21 +30,29 @@ def _run_cli_json(argv: list[str]) -> str:
     stdout (e.g. an error path that only prints to stderr), we synthesise an
     error envelope so callers always get valid JSON.
     """
+    cmd_name = argv[0] if argv else "unknown"
     buf = io.StringIO()
     with redirect_stdout(buf):
         jaunt.cli.main(argv)
     output = buf.getvalue().strip()
     if not output:
-        cmd_name = argv[0] if argv else "unknown"
-        return json.dumps({"command": cmd_name, "ok": False, "error": "command produced no output"})
+        return json.dumps(
+            {"command": cmd_name, "ok": False, "error": "command produced no output"}
+        )
 
     # When multiple JSON documents are emitted (e.g. build + test), keep the
     # last one — it corresponds to the top-level command the caller invoked.
     # Each JSON doc starts with '{' at column 0 after a newline boundary.
     last_start = output.rfind("\n{")
-    if last_start != -1:
-        return output[last_start + 1 :]
-    return output
+    candidate = output[last_start + 1 :] if last_start != -1 else output
+
+    # Validate that the output is actually JSON.  If the CLI produced non-JSON
+    # text (e.g. argparse help), wrap it in an error envelope.
+    try:
+        json.loads(candidate)
+    except (json.JSONDecodeError, ValueError):
+        return json.dumps({"command": cmd_name, "ok": False, "error": candidate[:500]})
+    return candidate
 
 
 def tool_build(
@@ -127,6 +135,7 @@ def tool_spec_info(
     module: str | None = None,
 ) -> str:
     """Return specs and dependency graph for the project (or a specific module)."""
+    saved_path = sys.path[:]
     try:
         from jaunt.config import find_project_root, load_config
 
@@ -135,7 +144,7 @@ def tool_spec_info(
 
         source_dirs = [root_path / sr for sr in cfg.paths.source_roots]
 
-        # Ensure modules are importable.
+        # Temporarily add source dirs so modules are importable.
         seen: set[str] = set(sys.path)
         for d in reversed([p.resolve() for p in source_dirs if p.exists()]):
             s = str(d)
@@ -195,6 +204,8 @@ def tool_spec_info(
                 "error": str(e),
             }
         )
+    finally:
+        sys.path[:] = saved_path
 
 
 # ---------------------------------------------------------------------------
@@ -280,7 +291,15 @@ def create_mcp_server():
     return mcp
 
 
-def run_server() -> None:
-    """Entry point: create and run the MCP server (stdio transport)."""
+def run_server(*, root: str | None = None) -> None:
+    """Entry point: create and run the MCP server (stdio transport).
+
+    If *root* is provided, changes the working directory to that path so
+    that all tools resolve relative to the given project root.
+    """
+    import os
+
+    if root:
+        os.chdir(Path(root).resolve())
     mcp = create_mcp_server()
     mcp.run()

@@ -244,6 +244,41 @@ class TestMCPToolSpecInfo:
 
 
 # ---------------------------------------------------------------------------
+# Edge cases
+# ---------------------------------------------------------------------------
+
+
+class TestRunCliJsonEdgeCases:
+    """Test _run_cli_json handles non-JSON and malformed output gracefully."""
+
+    def test_non_json_output_returns_error_envelope(self) -> None:
+        from jaunt.mcp_server import _run_cli_json
+
+        # Passing an invalid subcommand that argparse rejects — the CLI returns
+        # an exit code but no JSON.  _run_cli_json should wrap it.
+        result = _run_cli_json(["build", "--root", "/nonexistent/path/unlikely"])
+        data = json.loads(result)
+        assert data["ok"] is False
+        assert "error" in data
+
+
+class TestSpecInfoSysPathCleanup:
+    """Verify tool_spec_info restores sys.path after execution."""
+
+    def test_sys_path_restored(self, tmp_path: Path, monkeypatch) -> None:
+        import sys
+
+        monkeypatch.chdir(tmp_path)
+        _make_min_project(tmp_path)
+
+        from jaunt.mcp_server import tool_spec_info
+
+        original_path = sys.path[:]
+        tool_spec_info(root=str(tmp_path))
+        assert sys.path == original_path
+
+
+# ---------------------------------------------------------------------------
 # MCP server creation
 # ---------------------------------------------------------------------------
 
@@ -264,7 +299,7 @@ class TestMCPServerCreation:
 
         server = create_mcp_server()
         # The server should expose these tools — get_tools() returns a dict keyed by name
-        tools = asyncio.run(server._tool_manager.get_tools())
+        tools = asyncio.run(server.get_tools())
         tool_names = set(tools.keys())
         expected = {"jaunt_build", "jaunt_test", "jaunt_status", "jaunt_spec_info", "jaunt_clean"}
         assert expected <= tool_names
