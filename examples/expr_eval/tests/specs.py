@@ -14,6 +14,7 @@ def test_tokenize_arithmetic():
     - Token positions are correct offsets into the input string
       (0 for "3", 2 for "+", 4 for "4.5", 8 for "*", 10 for "2")
     """
+    raise AssertionError("spec stub (generated at test time)")
 
 
 @jaunt.test()
@@ -23,6 +24,7 @@ def test_tokenize_power_operator():
     - 4 tokens: IDENT, POWER, NUMBER, EOF
     - The "**" is a single POWER token, not two separate STAR tokens
     """
+    raise AssertionError("spec stub (generated at test time)")
 
 
 @jaunt.test()
@@ -32,6 +34,7 @@ def test_tokenize_error_on_invalid_char():
     The '@' is at 0-based index 4 in the input string.
     The error message should contain the '@' character.
     """
+    raise AssertionError("spec stub (generated at test time)")
 
 
 @jaunt.test()
@@ -43,6 +46,7 @@ def test_parse_precedence_via_evaluation():
     - evaluate("(2 + 3) * 4") => 20.0  (parens override precedence)
     - evaluate("2 + 6 / 3") => 4.0  (division before addition)
     """
+    raise AssertionError("spec stub (generated at test time)")
 
 
 @jaunt.test()
@@ -53,6 +57,7 @@ def test_parse_right_associative_power():
       because 2 ** (3 ** 2) = 2 ** 9 = 512
       NOT (2 ** 3) ** 2 = 8 ** 2 = 64
     """
+    raise AssertionError("spec stub (generated at test time)")
 
 
 @jaunt.test()
@@ -63,6 +68,7 @@ def test_parse_function_call_structure():
     Verify by evaluating: evaluate("max(1, 2 + 3)") => 5.0
     Also: evaluate("min(10, 20, 5)") => 5.0
     """
+    raise AssertionError("spec stub (generated at test time)")
 
 
 @jaunt.test()
@@ -73,6 +79,7 @@ def test_unary_minus():
     evaluate("-(-3)")  => 3.0
     evaluate("2 * -3") => -6.0
     """
+    raise AssertionError("spec stub (generated at test time)")
 
 
 @jaunt.test()
@@ -84,6 +91,7 @@ def test_evaluate_basic_arithmetic():
     evaluate("7 % 3")       => 1.0
     evaluate("2 ** 10")     => 1024.0
     """
+    raise AssertionError("spec stub (generated at test time)")
 
 
 @jaunt.test()
@@ -93,6 +101,7 @@ def test_evaluate_nested_functions():
     evaluate("sqrt(abs(-16))")           => 4.0
     evaluate("round(3.7)")               => 4.0
     """
+    raise AssertionError("spec stub (generated at test time)")
 
 
 @jaunt.test()
@@ -101,6 +110,7 @@ def test_evaluate_variables():
     evaluate("x * 2 + y", {"x": 5, "y": 3})  => 13.0
     evaluate("a ** b", {"a": 2, "b": 8})      => 256.0
     """
+    raise AssertionError("spec stub (generated at test time)")
 
 
 @jaunt.test()
@@ -110,6 +120,7 @@ def test_evaluate_undefined_variable_raises():
     evaluate("foo(1)") where "foo" is not a built-in should raise NameError
     containing "foo".
     """
+    raise AssertionError("spec stub (generated at test time)")
 
 
 @jaunt.test()
@@ -118,6 +129,7 @@ def test_evaluate_division_by_zero():
     evaluate("1 / 0")  should raise ZeroDivisionError.
     evaluate("5 % 0")  should raise ZeroDivisionError.
     """
+    raise AssertionError("spec stub (generated at test time)")
 
 
 @jaunt.test()
@@ -125,6 +137,7 @@ def test_evaluate_sqrt_negative():
     """
     evaluate("sqrt(-1)") should raise ValueError.
     """
+    raise AssertionError("spec stub (generated at test time)")
 
 
 @jaunt.test()
@@ -134,6 +147,7 @@ def test_evaluate_wrong_arity():
     evaluate("abs(1, 2)")   should raise TypeError (needs exactly 1 arg).
     evaluate("min()")       should raise TypeError (needs at least 1 arg).
     """
+    raise AssertionError("spec stub (generated at test time)")
 
 
 @jaunt.test()
@@ -142,6 +156,7 @@ def test_calc_convenience():
     calc("x**2 + y**2", x=3, y=4) => 25.0
     calc("2 * pi * r", pi=3.14159, r=10) => close to 62.8318 (within 0.01)
     """
+    raise AssertionError("spec stub (generated at test time)")
 
 
 @jaunt.test()
@@ -158,3 +173,4 @@ def test_complex_expression():
     - 3 ** 2 = 9
     - 9 + 9 = 18.0
     """
+    raise AssertionError("spec stub (generated at test time)")

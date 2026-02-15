@@ -24,6 +24,7 @@ def normalize_email(raw: str) -> str:
     Examples:
     - normalize_email("  A.B+tag@Example.COM  ") == "a.b+tag@example.com"
     """
+    raise RuntimeError("spec stub (generated at build time)")
 
 
 @jaunt.magic(deps=[normalize_email])
@@ -41,3 +42,4 @@ def is_corporate_email(raw: str, *, domain: str = "example.com") -> bool:
     - is_corporate_email("user@other.com") is False
     - is_corporate_email("u@corp.example", domain="corp.example") is True
     """
+    raise RuntimeError("spec stub (generated at build time)")
