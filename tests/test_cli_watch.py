@@ -127,6 +127,5 @@ def test_cmd_watch_missing_config(tmp_path: Path, monkeypatch) -> None:
 
 def _raise_import_error() -> None:
     raise ImportError(
-        "watchfiles is required for watch mode. "
-        "Install it with: pip install jaunt[watch]"
+        "watchfiles is required for watch mode. Install it with: pip install jaunt[watch]"
     )

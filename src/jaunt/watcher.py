@@ -35,8 +35,7 @@ def check_watchfiles_available() -> None:
         importlib.import_module("watchfiles")
     except ImportError:
         raise ImportError(
-            "watchfiles is required for watch mode. "
-            "Install it with: pip install jaunt[watch]"
+            "watchfiles is required for watch mode. Install it with: pip install jaunt[watch]"
         ) from None
 
 

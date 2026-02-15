@@ -241,10 +241,12 @@ def test_watch_loop_continues_after_build_failure() -> None:
 
     async def run() -> None:
         await run_watch_loop(
-            changes_iter=_fake_changes([
-                {(1, "/src/a.py")},
-                {(1, "/src/b.py")},
-            ]),
+            changes_iter=_fake_changes(
+                [
+                    {(1, "/src/a.py")},
+                    {(1, "/src/b.py")},
+                ]
+            ),
             run_cycle=fake_run_cycle,
             on_event=lambda msg: None,
             on_cycle_result=lambda r: None,
@@ -275,10 +277,12 @@ def test_watch_loop_handles_exception_in_run_cycle() -> None:
 
     async def run() -> None:
         await run_watch_loop(
-            changes_iter=_fake_changes([
-                {(1, "/src/a.py")},
-                {(1, "/src/b.py")},
-            ]),
+            changes_iter=_fake_changes(
+                [
+                    {(1, "/src/a.py")},
+                    {(1, "/src/b.py")},
+                ]
+            ),
             run_cycle=exploding_run_cycle,
             on_event=lambda msg: None,
             on_cycle_result=lambda r: None,
@@ -388,12 +392,8 @@ def test_cycle_runner_calls_cmd_build(monkeypatch) -> None:
 def test_cycle_runner_calls_cmd_test_when_enabled(monkeypatch) -> None:
     build_calls: list[object] = []
     test_calls: list[object] = []
-    monkeypatch.setattr(
-        "jaunt.cli.cmd_build", lambda args: (build_calls.append(args), 0)[1]
-    )
-    monkeypatch.setattr(
-        "jaunt.cli.cmd_test", lambda args: (test_calls.append(args), 0)[1]
-    )
+    monkeypatch.setattr("jaunt.cli.cmd_build", lambda args: (build_calls.append(args), 0)[1])
+    monkeypatch.setattr("jaunt.cli.cmd_test", lambda args: (test_calls.append(args), 0)[1])
 
     import jaunt.cli
 
@@ -411,9 +411,7 @@ def test_cycle_runner_calls_cmd_test_when_enabled(monkeypatch) -> None:
 def test_cycle_runner_skips_test_on_build_failure(monkeypatch) -> None:
     monkeypatch.setattr("jaunt.cli.cmd_build", lambda args: 3)
     test_calls: list[object] = []
-    monkeypatch.setattr(
-        "jaunt.cli.cmd_test", lambda args: (test_calls.append(args), 0)[1]
-    )
+    monkeypatch.setattr("jaunt.cli.cmd_test", lambda args: (test_calls.append(args), 0)[1])
 
     import jaunt.cli
 
