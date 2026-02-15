@@ -289,13 +289,16 @@ def cmd_init(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
-def _find_generated_dirs(root: Path, generated_dir: str) -> list[Path]:
-    """Walk source and test roots to find all __generated__ directories."""
-    found: list[Path] = []
-    for dirpath, dirnames, _filenames in os.walk(root):
-        if Path(dirpath).name == generated_dir:
-            found.append(Path(dirpath))
-            dirnames.clear()  # Don't recurse into the generated dir itself
+def _find_generated_dirs(roots: Sequence[Path], generated_dir: str) -> list[Path]:
+    """Walk configured roots and find generated directories."""
+    found: set[Path] = set()
+    for root in roots:
+        if not root.exists():
+            continue
+        for dirpath, dirnames, _filenames in os.walk(root):
+            if Path(dirpath).name == generated_dir:
+                found.add(Path(dirpath))
+                dirnames.clear()  # Don't recurse into the generated dir itself
     return sorted(found)
 
 
@@ -312,7 +315,10 @@ def cmd_clean(args: argparse.Namespace) -> int:
         return EXIT_CONFIG_OR_DISCOVERY
 
     generated_dir = cfg.paths.generated_dir
-    found = _find_generated_dirs(root, generated_dir)
+    scan_roots = [root / sr for sr in cfg.paths.source_roots] + [
+        root / tr for tr in cfg.paths.test_roots
+    ]
+    found = _find_generated_dirs(scan_roots, generated_dir)
     dry_run = getattr(args, "dry_run", False)
 
     if dry_run:
@@ -372,6 +378,9 @@ def cmd_status(args: argparse.Namespace) -> int:
                         "fresh": [],
                     }
                 )
+            else:
+                print("Status: 0 module(s) total")
+                print("No magic specs discovered.")
             return EXIT_OK
 
         infer_default = bool(cfg.build.infer_deps) and (not bool(args.no_infer_deps))
@@ -413,6 +422,16 @@ def cmd_status(args: argparse.Namespace) -> int:
                     "fresh": sorted(fresh),
                 }
             )
+        else:
+            stale_sorted = sorted(stale)
+            fresh_sorted = sorted(fresh)
+            print(f"Status: {len(all_mods)} module(s) total")
+            print(f"Stale ({len(stale_sorted)}):")
+            for mod in stale_sorted:
+                print(f"- {mod}")
+            print(f"Fresh ({len(fresh_sorted)}):")
+            for mod in fresh_sorted:
+                print(f"- {mod}")
 
         return EXIT_OK
     except (JauntConfigError, JauntDiscoveryError, JauntDependencyCycleError, KeyError) as e:
