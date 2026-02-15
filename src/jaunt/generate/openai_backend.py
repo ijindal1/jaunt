@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import asyncio
+import logging
 import os
 import re
 from importlib import resources
@@ -9,6 +11,11 @@ from typing import Any
 from jaunt.config import LLMConfig, PromptsConfig
 from jaunt.errors import JauntConfigError
 from jaunt.generate.base import GeneratorBackend, ModuleSpecContext
+
+logger = logging.getLogger("jaunt.generate.openai")
+
+_MAX_API_RETRIES = 4
+_BASE_BACKOFF_S = 1.0
 
 
 def render_template(text: str, mapping: dict[str, str]) -> str:
@@ -37,6 +44,22 @@ def _fmt_kv_block(items: list[tuple[str, str]], *, empty: str = "(none)") -> str
     for key, value in items:
         chunks.append(f"# {key}\n{value.rstrip()}\n")
     return "\n".join(chunks).rstrip() + "\n"
+
+
+def _is_retryable(exc: BaseException) -> bool:
+    """Return True for transient API errors worth retrying."""
+    # openai.RateLimitError, openai.APITimeoutError, openai.APIConnectionError,
+    # and 5xx APIStatusError are retryable.
+    cls_name = type(exc).__name__
+    if cls_name in ("RateLimitError", "APITimeoutError", "APIConnectionError"):
+        return True
+    if cls_name == "APIStatusError":
+        status = getattr(exc, "status_code", 0)
+        return int(status) >= 500
+    # Catch generic connection/timeout errors.
+    if isinstance(exc, (TimeoutError, ConnectionError, OSError)):
+        return True
+    return False
 
 
 class OpenAIBackend(GeneratorBackend):
@@ -74,16 +97,33 @@ class OpenAIBackend(GeneratorBackend):
         return p.read_text(encoding="utf-8")
 
     async def _call_openai(self, messages: list[dict[str, str]]) -> str:
-        # Keep this as a small method so tests can patch it without relying on
-        # SDK internals (which change frequently).
-        resp: Any = await self._client.chat.completions.create(
-            model=self._model,
-            messages=messages,
-        )
-        content = resp.choices[0].message.content
-        if not isinstance(content, str):
-            raise RuntimeError("OpenAI returned empty content.")
-        return content
+        """Call OpenAI API with retry and exponential backoff for transient errors."""
+        last_exc: BaseException | None = None
+        for attempt in range(_MAX_API_RETRIES):
+            try:
+                resp: Any = await self._client.chat.completions.create(
+                    model=self._model,
+                    messages=messages,
+                )
+                content = resp.choices[0].message.content
+                if not isinstance(content, str):
+                    raise RuntimeError("OpenAI returned empty content.")
+                return content
+            except Exception as exc:
+                last_exc = exc
+                if not _is_retryable(exc) or attempt >= _MAX_API_RETRIES - 1:
+                    raise
+                delay = _BASE_BACKOFF_S * (2**attempt)
+                logger.warning(
+                    "OpenAI API error (attempt %d/%d), retrying in %.1fs: %s",
+                    attempt + 1,
+                    _MAX_API_RETRIES,
+                    delay,
+                    exc,
+                )
+                await asyncio.sleep(delay)
+
+        raise last_exc  # type: ignore[misc]
 
     def _render_messages(
         self, ctx: ModuleSpecContext, *, extra_error_context: list[str] | None
