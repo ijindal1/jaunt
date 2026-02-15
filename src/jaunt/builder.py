@@ -249,6 +249,7 @@ async def run_build(
             heapq.heappush(ready, (-prio.get(m, 0), m))
 
     generated: set[str] = set()
+    generated_sources: dict[str, str] = {}  # module_name -> generated source
     failed: dict[str, list[str]] = {}
     completed: set[str] = set()
 
@@ -321,6 +322,9 @@ async def run_build(
         errors = validate_generated_source(result.source, expected)
         if errors:
             return False, errors
+
+        # Store generated source for downstream dependents.
+        generated_sources[module_name] = result.source
 
         digest = module_digest(module_name, entries, specs, spec_graph)
         header_fields = {
