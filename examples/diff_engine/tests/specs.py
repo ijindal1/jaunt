@@ -12,6 +12,7 @@ def test_identical_texts():
     EQUAL DiffLines.  Every line should have both old_lineno and
     new_lineno set and matching.
     """
+    raise AssertionError("spec stub (generated at test time)")
 
 
 @jaunt.test()
@@ -27,6 +28,7 @@ def test_completely_different_texts():
     - old_lineno is set for DELETEs (1,2), None for INSERTs
     - new_lineno is None for DELETEs, set for INSERTs (1,2,3)
     """
+    raise AssertionError("spec stub (generated at test time)")
 
 
 @jaunt.test()
@@ -41,6 +43,7 @@ def test_single_line_change():
     - INSERT "BETA" (old=None, new=2)
     - EQUAL "gamma" (old=3, new=3)
     """
+    raise AssertionError("spec stub (generated at test time)")
 
 
 @jaunt.test()
@@ -53,6 +56,7 @@ def test_insertion_at_end():
     - 2 EQUALs for line1, line2
     - 2 INSERTs for line3, line4
     """
+    raise AssertionError("spec stub (generated at test time)")
 
 
 @jaunt.test()
@@ -65,6 +69,7 @@ def test_deletion_at_beginning():
     - 1 DELETE for "header"
     - 2 EQUALs for alpha, beta
     """
+    raise AssertionError("spec stub (generated at test time)")
 
 
 @jaunt.test()
@@ -77,6 +82,7 @@ def test_empty_to_content():
     OR all INSERTs depending on LCS — the key check is that
     apply_patch(old, compute_diff(old, new)) == new.
     """
+    raise AssertionError("spec stub (generated at test time)")
 
 
 @jaunt.test()
@@ -91,6 +97,7 @@ def test_format_unified_header():
       +++ file2.txt
     and contain a @@ hunk header.
     """
+    raise AssertionError("spec stub (generated at test time)")
 
 
 @jaunt.test()
@@ -98,6 +105,7 @@ def test_format_unified_no_diff():
     """
     format_unified on identical texts returns an empty string.
     """
+    raise AssertionError("spec stub (generated at test time)")
 
 
 @jaunt.test()
@@ -108,6 +116,7 @@ def test_format_unified_context_lines():
     output hunk should show exactly 3 context lines before and 3 after
     the change — not all 5.
     """
+    raise AssertionError("spec stub (generated at test time)")
 
 
 @jaunt.test()
@@ -115,6 +124,7 @@ def test_format_unified_negative_context_raises():
     """
     format_unified(old, new, context=-1) should raise ValueError.
     """
+    raise AssertionError("spec stub (generated at test time)")
 
 
 @jaunt.test()
@@ -126,6 +136,7 @@ def test_apply_patch_roundtrip():
 
     Verify: apply_patch(old, compute_diff(old, new)) == new
     """
+    raise AssertionError("spec stub (generated at test time)")
 
 
 @jaunt.test()
@@ -135,6 +146,7 @@ def test_apply_patch_conflict():
     Then try to apply that diff to a different base "aaa\\nxxx".
     Should raise ValueError containing "patch conflict".
     """
+    raise AssertionError("spec stub (generated at test time)")
 
 
 @jaunt.test()
@@ -150,6 +162,7 @@ def test_diff_stats_counts():
     - total_old: 3
     - total_new: 4
     """
+    raise AssertionError("spec stub (generated at test time)")
 
 
 @jaunt.test()
@@ -162,3 +175,4 @@ def test_diff_stats_identical():
     - total_old: 2
     - total_new: 2
     """
+    raise AssertionError("spec stub (generated at test time)")

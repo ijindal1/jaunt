@@ -2,7 +2,7 @@
 
 All example projects live here. Each subfolder is a standalone Jaunt project with its own `jaunt.toml`, spec stubs, and tests.
 
-**Important:** running these will call the OpenAI API and spend tokens (`OPENAI_API_KEY` must be set).
+**Important:** running these will call a language model API and spend tokens (`OPENAI_API_KEY` or `ANTHROPIC_API_KEY` must be set, matching `llm.provider` in `jaunt.toml`).
 
 ## Examples
 
@@ -38,7 +38,7 @@ From the repo root:
 
 ```bash
 uv sync
-export OPENAI_API_KEY=...
+export OPENAI_API_KEY=...   # or ANTHROPIC_API_KEY for Claude
 
 # Run any example via the runner:
 .venv/bin/python examples/run_example.py jwt test
@@ -58,6 +58,6 @@ Generated outputs are written inside each example project:
 
 - `src/<pkg>/__generated__/...` (implementations)
 - `tests/__generated__/...` (pytest tests)
-- `.agents/skills/**/SKILL.md` (auto-generated PyPI skills)
+- `.agents/skills/**/SKILL.md` (auto-generated PyPI skills, if build runs with API key)
 
 Review the generated code before relying on it in real projects.
