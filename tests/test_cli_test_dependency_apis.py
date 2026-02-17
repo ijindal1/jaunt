@@ -51,12 +51,12 @@ def test_jaunt_test_passes_magic_dependency_apis_to_test_generation(
                 "version = 1",
                 "",
                 "[paths]",
-                "source_roots = [\"src\"]",
-                "test_roots = [\"tests\"]",
-                "generated_dir = \"__generated__\"",
+                'source_roots = ["src"]',
+                'test_roots = ["tests"]',
+                'generated_dir = "__generated__"',
                 "",
                 "[test]",
-                "pytest_args = [\"-q\"]",
+                'pytest_args = ["-q"]',
                 "",
             ]
         ),
@@ -64,7 +64,10 @@ def test_jaunt_test_passes_magic_dependency_apis_to_test_generation(
 
     # src/api_mod.py includes a magic spec that should be discovered and threaded
     # into test generation as dependency_apis.
-    _write(project / "src" / "api_mod.py", "import jaunt\n\n@jaunt.magic()\ndef foo(x: int) -> int:\n    raise RuntimeError('stub')\n")
+    _write(
+        project / "src" / "api_mod.py",
+        "import jaunt\n\n@jaunt.magic()\ndef foo(x: int) -> int:\n    raise RuntimeError('stub')\n",
+    )
 
     _write(project / "tests" / "__init__.py", "")
     _write(
@@ -106,4 +109,3 @@ def test_jaunt_test_passes_magic_dependency_apis_to_test_generation(
             if name in ("tests", "api_mod") or name.startswith("tests."):
                 sys.modules.pop(name, None)
         _restore_module("tests", orig_tests_mod, existed=had_tests)
-

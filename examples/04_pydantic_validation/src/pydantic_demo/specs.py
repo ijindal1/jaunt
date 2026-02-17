@@ -35,6 +35,7 @@ def parse_user(data: dict[str, object]) -> User:
     - Use User.model_validate(data) (pydantic v2).
     - Raise pydantic.ValidationError unchanged for invalid inputs.
     """
+    raise RuntimeError("spec stub (generated at build time)")
 
 
 @jaunt.magic(deps=User)
@@ -45,4 +46,4 @@ def user_to_public_dict(user: User) -> dict[str, object]:
     - Use user.model_dump(mode="json").
     - Return only keys: id, email, is_active.
     """
-
+    raise RuntimeError("spec stub (generated at build time)")

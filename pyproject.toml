@@ -1,13 +1,17 @@
 [project]
 name = "jaunt"
-version = "0.1.0"
-description = "A tiny Python library with a CLI."
+version = "0.2.0"
+description = "Spec-driven code generation framework: write intent as decorated Python stubs, generate implementations and tests with LLMs."
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = [
-  "openai>=1.0.0,<2",
-  "pydantic>=2,<3",
-]
+dependencies = []
+
+[project.optional-dependencies]
+openai = ["openai>=1.0.0,<2"]
+anthropic = ["anthropic>=0.39.0,<1"]
+watch = ["watchfiles>=1.0.0"]
+mcp = ["fastmcp>=2.0.0"]
+all = ["openai>=1.0.0,<2", "anthropic>=0.39.0,<1", "watchfiles>=1.0.0", "fastmcp>=2.0.0"]
 
 [project.scripts]
 jaunt = "jaunt.cli:main"
@@ -36,6 +40,8 @@ dev = [
   "pytest>=8",
   "ruff>=0.9",
   "ty",
+  "openai>=1.0.0,<2",
+  "fastmcp>=2.0.0",
 ]
 
 [tool.pytest.ini_options]
@@ -44,10 +50,10 @@ testpaths = ["tests"]
 [tool.ruff]
 line-length = 100
 target-version = "py312"
-exclude = ["jaunt-examples/**"]
+exclude = ["examples/**"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
 
 [tool.ty.src]
-exclude = ["examples/**", "toy-example/**", "jaunt-examples/**"]
+exclude = ["examples/**"]

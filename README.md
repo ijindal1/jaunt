@@ -4,7 +4,15 @@ Jaunt is a small Python library + CLI for **spec-driven code generation**:
 
 - Write implementation intent as normal Python stubs decorated with `@jaunt.magic(...)`.
 - Optionally write test intent as stubs decorated with `@jaunt.test(...)`.
-- Jaunt generates real modules under `__generated__/` using an LLM backend (OpenAI).
+- Jaunt generates real modules under `__generated__/` using an LLM backend (OpenAI or Anthropic).
+
+## Installation
+
+```bash
+pip install jaunt[openai]      # for OpenAI
+pip install jaunt[anthropic]   # for Anthropic/Claude
+pip install jaunt[all]         # both providers
+```
 
 ## Quickstart (This Repo)
 
@@ -12,31 +20,25 @@ Prereqs: `uv` installed.
 
 ```bash
 uv sync
-export OPENAI_API_KEY=...
+export OPENAI_API_KEY=...   # or ANTHROPIC_API_KEY for Claude
 uv run jaunt --version
 ```
 
-See `DOCS.md` for the full walkthrough and `docs-site/` for rendered docs.
+See `docs-site/` for rendered docs, or `DOCS.md` for a plain-text walkthrough.
 
-If you want the fastest “hackathon demo” experience, start with `jaunt-examples/` (consumer-style demo repos).
+All examples live under `examples/`. See `examples/README.md` for the full list.
 
-### Hackathon Demos (`jaunt-examples/`)
+### Hackathon Demo (JWT Auth)
 
-Headline demo: **JWT auth** (the “wow gap” example: short spec, real generated glue + tests).
+Headline demo: **JWT auth** (the "wow gap" example: short spec, real generated glue + tests).
 
 ```bash
 # Generate implementations for @jaunt.magic specs.
-uv run jaunt build --root jaunt-examples/jwt_auth
+uv run jaunt build --root examples/jwt_auth
 
 # Generate pytest tests for @jaunt.test specs and run them.
-PYTHONPATH=jaunt-examples/jwt_auth/src uv run jaunt test --root jaunt-examples/jwt_auth
+PYTHONPATH=examples/jwt_auth/src uv run jaunt test --root examples/jwt_auth
 ```
-
-This example also showcases `.agents/skills/**` auto-generation (because it imports `pydantic`):
-
-`jaunt-examples/jwt_auth/.agents/skills/pydantic/SKILL.md`
-
-Also see `toy-example/` for a minimal consumer project, and `examples/` for older runnable demos.
 
 ## Auto-Generate PyPI Skills (Build)
 
@@ -48,7 +50,7 @@ What happens:
 - Resolve imports to installed PyPI distributions + versions from the current environment.
 - Ensure a skill exists per distribution at:
   - `<project_root>/.agents/skills/<dist-normalized>/SKILL.md`
-- If missing/outdated, fetch the exact PyPI README for `<dist>==<version>` and generate `SKILL.md` using OpenAI.
+- If missing/outdated, fetch the exact PyPI README for `<dist>==<version>` and generate `SKILL.md` using the configured LLM provider.
 - Inject the concatenated skills text into the build LLM prompt.
 
 Overwrite rules:
