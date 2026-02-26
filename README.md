@@ -1,70 +1,124 @@
-# Jaunt
+# jaunt
 
-Jaunt is a small Python library + CLI for **spec-driven code generation**:
+**jaunt, don't code.** Spec-driven code generation for Python.
 
-- Write implementation intent as normal Python stubs decorated with `@jaunt.magic(...)`.
-- Optionally write test intent as stubs decorated with `@jaunt.test(...)`.
-- Jaunt generates real modules under `__generated__/` using an LLM backend (OpenAI).
+Vibe coding is fast but fragile — you get working code with no structure, no tests, and no way to maintain it. Writing every line by hand gives you control but kills your speed. Jaunt is the middle path: you write **specs** (type hints + docstrings + dependency declarations), and an LLM generates the implementation.
 
-## Quickstart (This Repo)
+You keep the architecture. The machine writes the code.
 
-Prereqs: `uv` installed.
+## How It Works
+
+1. **Write specs** — Python stubs decorated with `@jaunt.magic(...)`. Types, docstrings, and contracts define *what* you want. The body is ignored.
+2. **`jaunt build`** — Jaunt resolves dependencies, builds a DAG, and generates real modules under `__generated__/` using an LLM backend (OpenAI). Only stale modules are regenerated.
+3. **`jaunt test`** — Optionally write test stubs with `@jaunt.test(...)`. Jaunt generates real pytest tests and runs them.
+
+## Example: JWT Auth in ~60 Lines of Spec
+
+```python
+"""JWT Authentication — Jaunt Example"""
+
+from __future__ import annotations
+from datetime import timedelta
+
+import jaunt
+from pydantic import BaseModel
+
+
+class Claims(BaseModel):
+    """Decoded token payload."""
+    sub: str   # subject (user id)
+    iat: float # issued-at (unix timestamp)
+    exp: float # expiry (unix timestamp)
+
+
+@jaunt.magic()
+def create_token(
+    user_id: str,
+    secret: str,
+    *,
+    ttl: timedelta = timedelta(hours=1),
+) -> str:
+    """
+    Create an HS256-signed JWT.
+
+    Structure: base64url(header) . base64url(payload) . base64url(signature)
+    Header:  {"alg": "HS256", "typ": "JWT"}
+    Payload: {"sub": user_id, "iat": <now>, "exp": <now + ttl>}
+
+    - Use HMAC-SHA256 with `secret` as the key.
+    - base64url encoding must omit padding ("=" characters).
+    - Raise ValueError if user_id is empty.
+    """
+    ...
+
+
+@jaunt.magic(deps=[create_token, Claims])
+def verify_token(token: str, secret: str) -> Claims:
+    """
+    Verify an HS256-signed JWT and return its claims.
+
+    1. Split token on "." — must have exactly 3 parts.
+    2. Recompute HMAC-SHA256 over header.payload; compare to signature.
+    3. Decode payload JSON into Claims.
+    4. Check exp > current time.
+
+    Errors:
+    - ValueError("malformed") if structure is wrong.
+    - ValueError("invalid signature") if HMAC doesn't match.
+    - ValueError("expired") if token has expired.
+    """
+    ...
+
+
+@jaunt.magic(deps=[create_token, verify_token])
+def rotate_token(token: str, secret: str, *, ttl: timedelta = timedelta(hours=1)) -> str:
+    """
+    Verify an existing token and issue a fresh one for the same subject.
+
+    - Verify the old token (propagate any errors).
+    - Create a new token with the same user_id and a fresh ttl.
+    """
+    ...
+```
+
+From this spec, Jaunt generates a complete HS256 JWT implementation — base64url encoding, HMAC signing, expiry validation, token rotation — plus matching pytest tests. Your IDE sees the types. Your code reviews read the specs. The generated code lives in `__generated__/` and never needs to be touched.
+
+## Quickstart
+
+Prerequisites: [`uv`](https://docs.astral.sh/uv/) and an OpenAI API key.
 
 ```bash
 uv sync
 export OPENAI_API_KEY=...
-uv run jaunt --version
-```
 
-See `DOCS.md` for the full walkthrough and `docs-site/` for rendered docs.
-
-If you want the fastest “hackathon demo” experience, start with `jaunt-examples/` (consumer-style demo repos).
-
-### Hackathon Demos (`jaunt-examples/`)
-
-Headline demo: **JWT auth** (the “wow gap” example: short spec, real generated glue + tests).
-
-```bash
-# Generate implementations for @jaunt.magic specs.
+# Generate implementations from specs
 uv run jaunt build --root jaunt-examples/jwt_auth
 
-# Generate pytest tests for @jaunt.test specs and run them.
+# Generate tests and run them
 PYTHONPATH=jaunt-examples/jwt_auth/src uv run jaunt test --root jaunt-examples/jwt_auth
 ```
 
-This example also showcases `.agents/skills/**` auto-generation (because it imports `pydantic`):
+See `jaunt-examples/` for more demo projects, `toy-example/` for a minimal setup, and `docs-site/` for full documentation.
 
-`jaunt-examples/jwt_auth/.agents/skills/pydantic/SKILL.md`
+## Features
 
-Also see `toy-example/` for a minimal consumer project, and `examples/` for older runnable demos.
+- **Spec-driven** — Type hints and docstrings are the contract. Your specs are real Python that IDEs, type checkers, and humans can all read.
+- **Dependency graph** — Declare deps explicitly (`deps=[fn_a, ClassB]`) or let Jaunt infer them. Modules build in topological order with configurable concurrency.
+- **Incremental rebuilds** — Content-hashed digests track spec changes. Only stale modules (and their transitive dependents) are regenerated.
+- **Auto-skills** — Jaunt scans your imports, resolves them to PyPI packages, fetches their docs, and injects that context into the LLM prompt so it knows how to use your dependencies.
+- **Test generation** — `@jaunt.test` stubs describe test intent. Jaunt generates real pytest functions and runs them.
+- **Validation + retry** — Generated code is checked for expected top-level symbols. On failure, errors are fed back to the LLM for a second attempt.
 
-## Auto-Generate PyPI Skills (Build)
+## Project Layout
 
-`jaunt build` includes a best-effort pre-build step that auto-generates “skills” for external libraries your project imports and injects them into the build prompt.
-
-What happens:
-
-- Scan `paths.source_roots` for `import ...` / `from ... import ...` (ignores stdlib, internal modules, and relative imports).
-- Resolve imports to installed PyPI distributions + versions from the current environment.
-- Ensure a skill exists per distribution at:
-  - `<project_root>/.agents/skills/<dist-normalized>/SKILL.md`
-- If missing/outdated, fetch the exact PyPI README for `<dist>==<version>` and generate `SKILL.md` using OpenAI.
-- Inject the concatenated skills text into the build LLM prompt.
-
-Overwrite rules:
-
-- Jaunt only overwrites a skill if it was previously Jaunt-generated (it has a `<!-- jaunt:skill=pypi ... -->` header) and the installed version changed.
-- If the header is missing, the file is treated as user-managed and will never be overwritten.
-
-Failure mode: warnings to stderr, and the build continues without missing skills.
-
-## Docs Site (Fumadocs)
-
-The repository includes a Fumadocs (Next.js) documentation site under `docs-site/`.
-
-```bash
-cd docs-site
-npm run dev
+```
+src/jaunt/          # Library + CLI
+src/jaunt/prompts/  # Default prompt templates
+src/jaunt/generate/ # LLM backends (OpenAI)
+tests/              # Test suite
+jaunt-examples/     # Consumer-style demo projects (JWT auth, CSV parser, etc.)
+docs-site/          # Fumadocs documentation site
+DOCS.md             # Full technical reference
 ```
 
 ## Dev
