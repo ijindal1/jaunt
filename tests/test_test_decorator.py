@@ -46,6 +46,20 @@ def test_stores_deps_in_decorator_kwargs() -> None:
     assert got.decorator_kwargs == {"deps": ["a.b:One", "a.b:Two"]}
 
 
+def test_stores_targets_in_decorator_kwargs() -> None:
+    jaunt_test(targets=["pkg.ui.render_screen", "pkg.ui:play_cli"])(top_level_test_spec)
+    expected_ref = normalize_spec_ref(
+        f"{top_level_test_spec.__module__}:{top_level_test_spec.__qualname__}"
+    )
+    got = get_test_registry()[expected_ref]
+    assert got.decorator_kwargs == {
+        "targets": (
+            normalize_spec_ref("pkg.ui:play_cli"),
+            normalize_spec_ref("pkg.ui:render_screen"),
+        )
+    }
+
+
 def test_stores_public_api_only_in_decorator_kwargs() -> None:
     jaunt_test(public_api_only=False)(top_level_test_spec)
     expected_ref = normalize_spec_ref(
@@ -58,3 +72,23 @@ def test_stores_public_api_only_in_decorator_kwargs() -> None:
 def test_public_api_only_requires_boolean() -> None:
     with pytest.raises(Exception, match="public_api_only must be a boolean"):
         jaunt_test(public_api_only="nope")(top_level_test_spec)
+
+
+def test_targets_requires_spec_like_values() -> None:
+    with pytest.raises(Exception, match="targets must be a spec object"):
+        jaunt_test(targets=["not a valid ref"])(top_level_test_spec)
+
+
+def test_normalizes_generator_targets_before_storing() -> None:
+    targets = (target for target in ["pkg.ui.render_screen", "pkg.ui:play_cli"])
+    jaunt_test(targets=targets)(top_level_test_spec)
+    expected_ref = normalize_spec_ref(
+        f"{top_level_test_spec.__module__}:{top_level_test_spec.__qualname__}"
+    )
+    got = get_test_registry()[expected_ref]
+    assert got.decorator_kwargs == {
+        "targets": (
+            normalize_spec_ref("pkg.ui:play_cli"),
+            normalize_spec_ref("pkg.ui:render_screen"),
+        )
+    }
